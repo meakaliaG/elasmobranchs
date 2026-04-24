@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlas of Elasmobranchs</title>
+    <link rel="stylesheet" type="text/css" href="/assets/style.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Raleway:ital,wght@0,300;0,400;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Full-screen Three.js canvas -->
+    <canvas id="modelCanvas"></canvas>
+
+    <!-- Dim overlay — toggled by Three.js selectSpecimen / deselectSpecimen -->
+    <div class="scene-dim" id="sceneDim"></div>
+
+    <!-- Retractable nav — driven by nav.jsx -->
+    <nav class="site-nav hud-title" id="siteNav">
+        <div class="nav-inner">
+            <span class="nav-sup">Interactive Marine Biology</span>
+            <h1 class="nav-title">Atlas of Elasmobranchs</h1>
+        </div>
+    </nav>
+
+    <!-- Idle hint -->
+    <div class="hint" id="hint">Click the specimen to explore its anatomy</div>
+
+    <!-- Bottom-left depth widget -->
+    <div class="depth-widget">
+        <div class="depth-bar"><div class="depth-fill"></div></div>
+        <div class="depth-label">≈ 200 m</div>
+    </div>
+
+    <!-- Orbit controls legend -->
+    <div class="ctrl-hint">
+        <p>Drag · Orbit</p>
+        <p>Scroll · Zoom</p>
+    </div>
+
+    <!-- Specimen badge — latin name shown beneath model when selected -->
+    <div class="specimen-badge" id="specimenBadge">
+        <div class="sb-latin"></div>
+        <div class="sb-line"></div>
+        <div class="sb-sub">Drag to rotate · Scroll to zoom</div>
+    </div>
+
+    <!-- Loading / error status -->
+    <div id="viewerStatus" style="display:none;"></div>
+
+    <!--
+        React mount point — viewer.jsx renders <InfoPanel /> here via createRoot.
+        No onclick, no inline handlers — all event wiring lives in viewer.jsx.
+    -->
+    <div id="panelMount"></div>
+
+    <script src="/assets/viewerBundle.js"></script>
+    <script src="/assets/navBundle.js"></script>
+
+</body>
+</html>

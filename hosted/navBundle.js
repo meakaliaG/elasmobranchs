@@ -1,0 +1,1 @@
+window.addEventListener("DOMContentLoaded",function(){var e=document.getElementById("siteNav");if(e){var t=null,n=function(){e.classList.remove("nav-hidden"),clearTimeout(t),t=setTimeout(function(){return e.classList.add("nav-hidden")},2800)};document.addEventListener("mousemove",n,{passive:!0}),document.addEventListener("touchstart",n,{passive:!0}),n()}});
