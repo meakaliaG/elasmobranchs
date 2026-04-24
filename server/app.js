@@ -1,81 +1,46 @@
-// import Loader from './Loader';
-
-// export default function App() {
-//     return (
-//         <main>
-//             <Loader />
-//         </main>
-//     );
-// }
-
 require('dotenv').config();
+
 const path = require('path');
 const express = require('express');
 const compression = require('compression');
-const favicon = require('serve-favicon');
-// const mongoose = require('mongoose');
 const expressHandlebars = require('express-handlebars');
 const helmet = require('helmet');
 const session = require('express-session');
-const RedisStore = require('connect-redis').RedisStore;
-const redis = require('redis');
 const router = require('./router.js');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
-//const port = 3000;
 
-// const dbURI = process.env.MOGODB_URI || 'mongodb://localhost/Elasmobranch';
-// mongoose.connect(dbURI).catch((err) => {
-//     if(err) {
-//         console.log('Could not connect to database');
-//         throw err;
-//     }
-// });
+const app = express();
 
-const redisClient = redis.createClient({
-    url: process.env.REDISCLOUD_URL, // must be set in heroku config
+app.use(helmet.contentSecurityPolicy({
+    directives: {
+        defaultSrc: ["'self'"],
+        connectSrc: ["'self'", "blob:"],
+        imgSrc:     ["'self'", "blob:", "data:"],
+        workerSrc:  ["'self'", "blob:"],
+    }
+}));
+
+app.use('/assets', express.static(path.resolve(`${__dirname}/../hosted`)));
+app.use(compression());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+app.use(session({
+    key: 'sessionid',
+    secret: process.env.SESSION_SECRET || 'devSecret123',
+    resave: false,
+    saveUninitialized: false,
+}));
+
+app.engine('handlebars', expressHandlebars.engine({ defaultLayout: '' }));
+app.set('view engine', 'handlebars');
+app.set('views', `${__dirname}/../views`);
+
+console.log(`dirname: ${__dirname}`);
+router(app);
+
+app.listen(port, (err) => {
+    if (err) throw err;
+    console.log(`Listening on port ${port}`);
 });
-
-redisClient.on('error', err => console.error('Redis Client Error', err));
-
-redisClient.connect()
-    .then(() => {
-        const app = express();
-
-        app.use(helmet.contentSecurityPolicy({
-            directives: {
-                defaultSrc: ["'self'"],
-                connectSrc: ["'self'", "blob:"],
-                imgSrc:     ["'self'", "blob:", "data:"],
-                workerSrc:  ["'self'", "blob:"],
-            }
-        }));
-
-        app.use('/assets', express.static(path.resolve(`${__dirname}/../hosted`)));
-        app.use(compression());
-        app.use(express.urlencoded({ extended: true }));
-        app.use(express.json());
-
-        app.use(session({
-            key: 'sessionid',
-            store: new RedisStore({ client: redisClient }),
-            secret: process.env.SESSION_SECRET || 'Domo Arigato', // don't hardcode in prod
-            resave: false,
-            saveUninitialized: false,
-        }));
-
-        app.engine('handlebars', expressHandlebars.engine({ defaultLayout: '' }));
-        app.set('view engine', 'handlebars');
-        app.set('views', `${__dirname}/../views`);
-        console.log(`dirname: ${__dirname}`);
-        router(app);
-
-        app.listen(port, (err) => {
-            if (err) throw err;
-            console.log(`Listening on port ${port}`);
-        });
-    })
-    .catch((err) => {
-        console.error('Failed to connect to Redis:', err);
-        process.exit(1);
-    });
