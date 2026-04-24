@@ -8,6 +8,13 @@
  *   skin bounding box, keeping every layer perfectly aligned in 3D space
  * - CSS2DRenderer organ labels: click any sub-mesh to highlight and label it
  * - ORGAN_DATA and SPECIMEN_CATALOG loaded from JSON at startup
+ *
+ * ── KEY FIX ──────────────────────────────────────────────────────────────────
+ * THREE.Timer requires clock.update() at the TOP of each animate() frame,
+ * before getDelta() / getElapsed() are called. Without it both always return
+ * 0: showcaseBlend never advances, the model never lerps to SHOWCASE_POS,
+ * and stage rings stay at opacity 0 forever.
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 
 const React      = require('react');
@@ -377,7 +384,11 @@ const applyCanonical = (object) => {
 
 // ─── Model State ──────────────────────────────────────────────────────────────
 
-let skinModel       = null;
+let skinModel       = null;   // the pivot Group — swim path drives this
+let skinMesh        = null;   // gltf.scene inside the pivot — ONLY the skin geometry.
+                               // Toggling skin visibility must use skinMesh, NOT skinModel:
+                               // skinModel is the parent of all layer children, so
+                               // skinModel.visible = false would hide every layer too.
 let layerModels     = {};
 let currentFileName = null;
 let mixer           = null;
@@ -463,7 +474,9 @@ const deselectOrgan = () => {
 
 const toggleLayer = (layerKey, visible) => {
     if (layerKey === 'skin') {
-        if (skinModel) skinModel.visible = visible;
+        // Use skinMesh (gltf.scene), NOT skinModel (the pivot).
+        // The pivot is the parent of every layer child — hiding it hides them all.
+        if (skinMesh) skinMesh.visible = visible;
         return;
     }
 
@@ -486,50 +499,80 @@ const toggleLayer = (layerKey, visible) => {
 
     setStatus(`Loading ${layerDef.label}…`);
 
-    const doLoad = (materials) => {
-        const loader = new OBJLoader();
-        if (materials) loader.setMaterials(materials);
+    const isGLB = layerDef.obj.toLowerCase().endsWith('.glb');
 
-        loader.load(
+    if (isGLB) {
+        // ── GLB layer ─────────────────────────────────────────────────────
+        new GLTFLoader().load(
             layerDef.obj,
-            (obj) => {
-                obj.traverse(child => {
+            (gltf) => {
+                const root = gltf.scene;
+                root.traverse(child => {
                     if (!child.isMesh) return;
                     child.castShadow        = true;
                     child.receiveShadow     = true;
                     child.userData.layerKey = layerKey;
-                    child.geometry.computeVertexNormals();
-                    if (!materials) {
-                        child.material = new THREE.MeshStandardMaterial({
-                            color: 0x8aaabb, roughness: 0.55, metalness: 0.1, side: THREE.DoubleSide,
-                        });
-                    } else {
-                        const mats = Array.isArray(child.material) ? child.material : [child.material];
-                        mats.forEach(m => { m.side = THREE.DoubleSide; });
-                    }
+                    const mats = Array.isArray(child.material) ? child.material : [child.material];
+                    mats.forEach(m => { m.side = THREE.DoubleSide; });
                 });
-
-                applyCanonical(obj);
-                layerModels[layerKey] = obj;
-                obj.visible = true;
-                skinModel.add(obj); // child of pivot → inherits all transforms
-
-                // Log mesh names → copy these as keys into organData.json
+                applyCanonical(root);
+                layerModels[layerKey] = root;
+                root.visible = true;
+                skinModel.add(root);
                 const names = [];
-                obj.traverse(c => { if (c.isMesh && c.name) names.push(c.name); });
+                root.traverse(c => { if (c.isMesh && c.name) names.push(c.name); });
                 if (names.length) console.log(`[${layerKey}] mesh names →`, names);
-
                 setStatus('');
             },
-            xhr => setStatus(`${layerDef.label} ${Math.round((xhr.loaded / xhr.total) * 100)}%`),
+            xhr => xhr.total
+                ? setStatus(`${layerDef.label} ${Math.round((xhr.loaded / xhr.total) * 100)}%`)
+                : setStatus(`${layerDef.label} loading…`),
             err => { console.error(err); setStatus(`Failed to load ${layerDef.label}.`, true); },
         );
-    };
-
-    if (layerDef.mtl) {
-        new MTLLoader().load(layerDef.mtl, mats => { mats.preload(); doLoad(mats); });
     } else {
-        doLoad(null);
+        // ── OBJ layer (with optional MTL) ─────────────────────────────────
+        const doLoad = (materials) => {
+            const loader = new OBJLoader();
+            if (materials) loader.setMaterials(materials);
+            loader.load(
+                layerDef.obj,
+                (obj) => {
+                    obj.traverse(child => {
+                        if (!child.isMesh) return;
+                        child.castShadow        = true;
+                        child.receiveShadow     = true;
+                        child.userData.layerKey = layerKey;
+                        child.geometry.computeVertexNormals();
+                        if (!materials) {
+                            child.material = new THREE.MeshStandardMaterial({
+                                color: 0x8aaabb, roughness: 0.55, metalness: 0.1, side: THREE.DoubleSide,
+                            });
+                        } else {
+                            const mats = Array.isArray(child.material) ? child.material : [child.material];
+                            mats.forEach(m => { m.side = THREE.DoubleSide; });
+                        }
+                    });
+                    applyCanonical(obj);
+                    layerModels[layerKey] = obj;
+                    obj.visible = true;
+                    skinModel.add(obj);
+                    const names = [];
+                    obj.traverse(c => { if (c.isMesh && c.name) names.push(c.name); });
+                    if (names.length) console.log(`[${layerKey}] mesh names →`, names);
+                    setStatus('');
+                },
+                xhr => xhr.total
+                    ? setStatus(`${layerDef.label} ${Math.round((xhr.loaded / xhr.total) * 100)}%`)
+                    : setStatus(`${layerDef.label} loading…`),
+                err => { console.error(err); setStatus(`Failed to load ${layerDef.label}.`, true); },
+            );
+        };
+
+        if (layerDef.mtl) {
+            new MTLLoader().load(layerDef.mtl, mats => { mats.preload(); doLoad(mats); });
+        } else {
+            doLoad(null);
+        }
     }
 };
 
@@ -568,7 +611,7 @@ const selectSpecimen = () => {
     _setActiveLayers?.(new Set(['skin']));
 
     Object.values(layerModels).forEach(m => { m.visible = false; });
-    if (skinModel) skinModel.visible = true;
+    if (skinMesh) skinMesh.visible = true;
     deselectOrgan();
 
     document.getElementById('sceneDim')?.classList.add('active');
@@ -582,7 +625,7 @@ const deselectSpecimen = () => {
     isSelected = false;
 
     Object.values(layerModels).forEach(m => { m.visible = false; });
-    if (skinModel) skinModel.visible = true;
+    if (skinMesh) skinMesh.visible = true;
     deselectOrgan();
 
     _setPanelOpen?.(false);
@@ -667,6 +710,7 @@ const setStatus = (msg, isError = false) => {
 const _clearScene = () => {
     if (sharkRoot)  sharkRoot.visible = false;
     if (skinModel) { scene.remove(skinModel); skinModel = null; }
+    skinMesh        = null;
     Object.values(layerModels).forEach(m => scene.remove(m));
     layerModels     = {};
     currentFileName = null;
@@ -765,6 +809,7 @@ export const loadGLTF = (url) => {
             computeCanonical(gltf.scene);
             applyCanonical(gltf.scene);
             pivot.add(gltf.scene);
+            skinMesh = gltf.scene; // reference to skin geometry only — not the pivot
 
             // Plain sphere proxy — raycasts correctly regardless of skinning.
             // Sized to wrap the canonical 3-unit model (radius 1.6 ≈ half-height).
@@ -814,8 +859,7 @@ window.addEventListener('resize', () => {
 
 // ── Render Loop ───────────────────────────────────────────────────────────────
 
-let _prevTime = performance.now();
-let _elapsed  = 0;
+const clock = new THREE.Timer();
 let swimT = 0;
 
 const _dir       = new THREE.Vector3();
@@ -825,11 +869,14 @@ const _frozenPos = new THREE.Vector3();
 const animate = () => {
     requestAnimationFrame(animate);
 
-    const now     = performance.now();
-    const delta   = (now - _prevTime) / 1000; // ms → seconds
-    _elapsed     += delta;
-    _prevTime     = now;
-    const elapsed = _elapsed;
+    // ── clock.update() MUST be first ─────────────────────────────────────
+    // THREE.Timer stores time internally and only updates its registers when
+    // update() is explicitly called. getDelta() and getElapsed() return 0
+    // until the first update() — and return stale values if update() is
+    // skipped on subsequent frames. Always call it before anything else.
+    clock.update();
+    const delta   = clock.getDelta();
+    const elapsed = clock.getElapsed();
 
     if (mixer) mixer.update(delta);
 

@@ -1,295 +1,295 @@
 {
   "_note": "Keys should match Blender mesh names exactly. Toggle a layer on and check the browser console for '[layerKey] mesh names → [...]' to verify and rename keys as needed. Exterior entries with no CSV description have been left with empty strings — fill in as needed.",
 
-  "levator_palatoquadrati": {
+  "Levator_palatoquadrati": {
     "label": "Levator Palatoquadrati",
     "sublabel": "Muscular · Behind eye",
     "description": "Opens the mouth and protrudes the jaw by contracting to force the upper jaw outwards and the lower jaw downwards."
   },
-  "levator_hyomandibulae": {
+  "Levator_hyomandibulae": {
     "label": "Levator Hyomandibulae",
     "sublabel": "Muscular · Behind eye & jaw",
     "description": "Retracts the jaw after protrusion to assist in closing the mouth."
   },
-  "adductor_mandibulae": {
+  "Adductor_mandibulae": {
     "label": "Adductor Mandibulae",
     "sublabel": "Muscular · On jaw",
     "description": "Closes the jaw after opening."
   },
-  "intermandibulars": {
+  "Intermandibulars": {
     "label": "Intermandibulars",
     "sublabel": "Muscular · Lateral under jaw",
     "description": "Elevate the floor of the mouth and compress the oral cavity. Controls pressure within the oral cavity for swallowing and chewing, and constricts the cavity to force water movement over the gills."
   },
-  "coracoarcuals": {
+  "Coracoarcuals": {
     "label": "Coracoarcuals",
     "sublabel": "Muscular · Medial under jaw",
     "description": "Depress the lower jaw to open the mouth. Assists in regulating the hyoid for suction and feeding."
   },
-  "superficial_constrictors": {
+  "Superficial_constrictors": {
     "label": "Superficial Constrictors",
     "sublabel": "Muscular · Around skull & gills",
     "description": "This thin sheet-like muscle covers the gill regions, creating flap-like valves that control the opening and closing of the external gill slits."
   },
-  "cucullaris": {
+  "Cucullaris": {
     "label": "Cucullaris",
     "sublabel": "Muscular · Above gills",
     "description": "Elevates the gill arches and protracts the pectoral girdle in order to compress the internal gill pouches and control water movement over the gills."
   },
-  "epaxial_myomeres": {
+  "Epaxial_myomeres": {
     "label": "Epaxial Myomeres",
     "sublabel": "Muscular · Dorsal body",
     "description": "Control the undulating swimming motion through unilateral contraction, creating propelling waves that move the shark forward."
   },
-  "hypaxial_myomeres": {
+  "Hypaxial_myomeres": {
     "label": "Hypaxial Myomeres",
     "sublabel": "Muscular · Lateral & medial",
     "description": "Contract to depress the ventral region and bend the body downwards for dives and turns. Opposes the epaxials to create alternating curvatures for precise movement."
   },
-  "abductor_superficialis_pectoralleft": {
+  "Abductor_superficialis_pectoralleft": {
     "label": "Abductor Superficialis (Pectoral)",
     "sublabel": "Muscular · Top pectoral",
     "description": "Abducts the pectoral fin, lifting it dorsally."
   },
-  "adductor_superficialis_pectoralleft": {
+  "Adductor_superficialis_pectoralleft": {
     "label": "Adductor Superficialis (Pectoral)",
     "sublabel": "Muscular · Bottom pectoral",
     "description": "Adducts the pectoral fin, pulling it in medially."
   },
-   "abductor_superficialis_pectoralright": {
+   "Abductor_superficialis_pectoralright": {
     "label": "Abductor Superficialis (Pectoral)",
     "sublabel": "Muscular · Top pectoral",
     "description": "Abducts the pectoral fin, lifting it dorsally."
   },
-  "adductor_superficialis_pectoralright": {
+  "Adductor_superficialis_pectoralright": {
     "label": "Adductor Superficialis (Pectoral)",
     "sublabel": "Muscular · Bottom pectoral",
     "description": "Adducts the pectoral fin, pulling it in medially."
   },
-  "dorsalis_anterior": {
+  "Dorsalis_anterior": {
     "label": "Dorsalis",
     "sublabel": "Muscular · Dorsal fin",
     "description": "Connects to fin rays to control movement and rigidity of the dorsal fin."
   },
-  "abductor_superficialis_pelvic": {
+  "Abductor_superficialis_pelvic": {
     "label": "Abductor Superficialis (Pelvic)",
     "sublabel": "Muscular · Pelvic fin top",
     "description": "Abducts the pelvic fins, lifting them dorsally."
   },
-  "adductor_superficialis_pelvic": {
+  "Adductor_superficialis_pelvic": {
     "label": "Adductor Superficialis (Pelvic)",
     "sublabel": "Muscular · Pelvic fin bottom",
     "description": "Adducts the pelvic fins, pulling them in medially."
   },
-  "dorsalis_posterior": {
+  "Dorsalis_posterior": {
     "label": "Dorsalis Posterior",
     "sublabel": "Muscular · Posterior dorsal fin",
     "description": "Connects to fin rays to control movement and rigidity of the posterior dorsal fin."
   },
-  "pelvic_fin_muscle": {
+  "Pelvic_fin_muscle": {
     "label": "Pelvic Fin",
     "sublabel": "Muscular",
     "description": "Stabilizes the body to prevent rolling and assists in navigation during turning."
   },
-  "anal_fin_muscle": {
+  "Anal_fin_muscle": {
     "label": "Anal Fin",
     "sublabel": "Muscular",
     "description": "Stabilizes the body to prevent rolling and assists in navigation during turning."
   },
 
-  "rostrum": {
+  "Rostrum": {
     "label": "Rostrum",
     "sublabel": "Skeleton · Skull / Chondrocranium",
     "description": "Snout-like extension that functions as a sensory tool for detecting prey and supports the nasal capsules."
   },
-  "olfactory_capsule": {
+  "Olfactory_capsule": {
     "label": "Olfactory Capsule",
     "sublabel": "Skeleton · Skull / Chondrocranium",
     "description": "Protects the olfactory bulbs and is lined with sensory epithelium."
   },
-  "otic_capsule": {
+  "Otic_capsule": {
     "label": "Otic Capsule",
     "sublabel": "Skeleton · Skull / Chondrocranium",
     "description": "Protects the fluid-filled labyrinth of the inner ear, which functions for hearing and balance."
   },
-  "sclerotic_capsule": {
+  "Sclerotic_capsule": {
     "label": "Sclerotic Capsule",
     "sublabel": "Skeleton · Skull / Chondrocranium",
     "description": "Provides structural support and protection for the eye within the orbit."
   },
-  "jaw": {
+  "Jaw": {
     "label": "Jaw",
     "sublabel": "Skeleton · Jaw",
     "description": "Built for protrusion and maximum bite force, made of flexible cartilage and reinforced with hexagonal plates called tesserae to provide strength without adding weight."
   },
-  "palatoquadrate": {
+  "Palatoquadrate": {
     "label": "Palatoquadrate",
     "sublabel": "Skeleton · Upper jaw",
     "description": "The upper jaw — not fused to the skull but suspended by flexible connective tissue and ligaments."
   },
-  "meckels_cartilage": {
+  "Meckels_cartilage": {
     "label": "Meckel's Cartilage",
     "sublabel": "Skeleton · Lower jaw",
     "description": "The lower jaw, also suspended by flexible connective tissue and ligaments."
   },
-  "teeth": {
+  "Teeth": {
     "label": "Teeth",
     "sublabel": "Skeleton · Dentition",
     "description": "On average, great whites have five rows holding up to 46 teeth each. Each tooth can be 2–3 inches long and are continuously replaced throughout their lifetime. Upper teeth are broad and flat for cutting; lower teeth are slender and pointed for grasping and stabbing."
   },
-  "precaudal_vertebrae": {
+  "Precaudal_vertebrae": {
     "label": "Precaudal Vertebrae",
     "sublabel": "Skeleton · Axial",
     "description": "Segmental vertebrae consisting of a centrum and an arch. The centrum has two cones fused tip-to-tip for the notochord to pass through, and the arch holds the spinal cord. An adult great white can have 170–187 vertebrae."
   },
-  "gill_arches": {
+  "Gill_arches": {
     "label": "Gill Arches",
     "sublabel": "Skeleton · Respiratory support",
     "description": "Five cartilaginous structures that support the respiratory tissue of the gills. Each arch supports two rows of gill filaments. On the opposite side from the gills are the gill rakers — small projections that prevent swallowed particles from damaging the filaments."
   },
-  "pharyngobrachialis": {
+  "Pharyngobrachialis": {
     "label": "Pharyngobrachialis",
     "sublabel": "Skeleton · Gill support",
     "description": "Cartilage plates that support the internal gill pouches and connect them to the vertebral column."
   },
-  "pectoral_girdle": {
+  "Pectoral_girdle": {
     "label": "Pectoral Girdle",
     "sublabel": "Skeleton · Appendicular",
     "description": "Similar to the human shoulder, these paired cartilages support the pectoral fins."
   },
-  "mesopterygium": {
+  "Mesopterygium": {
     "label": "Mesopterygium",
     "sublabel": "Skeleton · Pectoral fin base",
     "description": "First basal cartilage that supports the pectoral fin, acting as a pivot point to assist in steering."
   },
-  "metapterygium": {
+  "Metapterygium": {
     "label": "Metapterygium",
     "sublabel": "Skeleton · Pectoral fin base",
     "description": "Second basal cartilage that supports the pectoral fin, acting as a pivot point to assist in steering."
   },
-  "pectoral_fin_skeletonleft": {
+  "Pectoral_fin_skeletonleft": {
     "label": "Pectoral Fin",
     "sublabel": "Skeleton · Appendicular",
     "description": "Consisting of radial cartilages, functions for lifting, steering, and braking."
   },
-  "pectoral_fin_skeletonright": {
+  "Pectoral_fin_skeletonright": {
     "label": "Pectoral Fin",
     "sublabel": "Skeleton · Appendicular",
     "description": "Consisting of radial cartilages, functions for lifting, steering, and braking."
   },
-  "dorsal_fin_skeleton": {
+  "Dorsal_fin_skeleton": {
     "label": "Dorsal Fin",
     "sublabel": "Skeleton · Stabilisation",
     "description": "Relatively stiff compared to other cartilages, assists in stabilizing the shark by preventing rolling and helping to steer."
   },
-  "pelvic_fin_skeleton": {
+  "Pelvic_fin_skeleton": {
     "label": "Pelvic Fin",
     "sublabel": "Skeleton · Stabilisation",
     "description": "Stabilizes and prevents rolling left or right, provides lift, and assists in steering."
   },
-  "posterior_dorsal_fin_skeleton": {
+  "Posterior_dorsal_fin_skeleton": {
     "label": "Posterior Dorsal Fin",
     "sublabel": "Skeleton · Stabilisation",
     "description": "Relatively stiff compared to other cartilages, assists in stabilizing the shark by preventing rolling and helping to steer."
   },
-  "anal_fin_skeleton": {
+  "Anal_fin_skeleton": {
     "label": "Anal Fin",
     "sublabel": "Skeleton · Stabilisation",
     "description": "Assists in stabilizing the shark, preventing rolling and helping to steer."
   },
-  "caudal_vertebrae": {
+  "Caudal_vertebrae": {
     "label": "Caudal Vertebrae",
     "sublabel": "Skeleton · Axial",
     "description": "Continuous with the precaudal vertebrae but feature a second arch for the dorsal aorta."
   },
-  "caudal_fin_skeleton": {
+  "Caudal_fin": {
     "label": "Caudal Fin",
     "sublabel": "Skeleton · Locomotion",
     "description": "The primary locomotive structure, providing thrust through lateral undulation. Consists of cartilaginous rays called ceratotrichia."
   },
 
-  "brain": {
+  "Brain": {
     "label": "Brain",
     "sublabel": "Organs · Neural",
     "description": "The great white's brain is highly specialized for navigation and hunting. Their olfactory function can take up to 66% of the brain's mass for advanced sensory input."
   },
-  "spinal_cord": {
+  "Spinal_cord": {
     "label": "Spinal Cord",
     "sublabel": "Organs · Neural",
     "description": "Helps connect nerve impulses to and from the musculature and sensory structures."
   },
-  "digestive_tract": {
+  "Digestive_tract": {
     "label": "Digestive Tract",
     "sublabel": "Organs · Digestive",
     "description": "The J-shaped stomach is designed for processing large, infrequent meals. The short but wide intestine has a spiral-shaped interior to increase surface area for nutrient absorption."
   },
-  "heart": {
+  "Heart": {
     "label": "Heart",
     "sublabel": "Organs · Circulatory",
     "description": "Great whites have a two-chambered heart with one atrium and one ventricle — a single-circuit system, unlike the human double circuit. Pumps deoxygenated blood directly to the gills."
   },
-  "liver": {
+  "Liver": {
     "label": "Liver",
     "sublabel": "Organs · Metabolic",
     "description": "Can occupy up to 90% of the body cavity in adult great whites. Filled with oil and nutrients, storing energy for long-distance travel and assisting the shark in maintaining buoyancy."
   },
-  "gallbladder": {
+  "Gallbladder": {
     "label": "Gallbladder",
     "sublabel": "Organs · Digestive",
     "description": "Stores bile, which is secreted to help the shark digest fats."
   },
-  "gonads": {
+  "Gonads": {
     "label": "Gonads",
     "sublabel": "Organs · Reproductive",
     "description": "These paired structures are the site of spermatogenesis, where sperm is produced before being stored near the claspers."
   },
-  "pancreas": {
+  "Pancreas": {
     "label": "Pancreas",
     "sublabel": "Organs · Endocrine / Immune",
     "description": "Functions in digestion but is also thought to act as a secondary lymphoid organ. Contains B-cell follicles and T-cell clusters that produce antibodies and help fight infections."
   },
-  "spleen": {
+  "Spleen": {
     "label": "Spleen",
     "sublabel": "Organs · Immune / Haematopoietic",
     "description": "A primary component of the immune system and the site of red blood cell production, since great white sharks lack bone marrow."
   },
-  "kidneys": {
+  "Kidneys": {
     "label": "Kidneys",
     "sublabel": "Organs · Osmoregulation",
     "description": "Sharks do not expel urea. Their kidneys have a complex four-loop nephron system designed for reabsorbing and managing urea, and also function in osmoregulation and hematopoiesis."
   },
-  "ureters": {
+  "Ureters": {
     "label": "Ureters",
     "sublabel": "Organs · Excretory",
     "description": "Carry wastes from the kidneys to the cloaca."
   },
-  "rectal_gland": {
+  "Rectal_gland": {
     "label": "Rectal Gland",
     "sublabel": "Organs · Osmoregulation",
     "description": "Helps maintain salt and water balance by excreting excess salt through the cloaca."
   },
 
-  "ampullae_of_lorenzini": {
+  "Ampullae_of_lorenzini": {
     "label": "Ampullae of Lorenzini",
     "sublabel": "Exterior · Electroreception",
     "description": ""
   },
-  "gill_openings": {
+  "Gill_openings": {
     "label": "Gill Openings",
     "sublabel": "Exterior · Respiratory",
     "description": ""
   },
-  "pectoral_fin": {
+  "Pectoral_fin": {
     "label": "Pectoral Fin",
     "sublabel": "Exterior · Locomotion",
     "description": ""
   },
-  "dorsal_fin_anterior": {
+  "Dorsal_fin_anterior": {
     "label": "Dorsal Fin",
     "sublabel": "Exterior · Stabilisation",
     "description": ""
   },
-  "pelvic_fins": {
+  "Pelvic_fins": {
     "label": "Pelvic Fins",
     "sublabel": "Exterior · Stabilisation",
     "description": ""
@@ -299,32 +299,32 @@
     "sublabel": "Exterior · Stabilisation",
     "description": ""
   },
-  "anal_fin": {
+  "Anal_fin": {
     "label": "Anal Fin",
     "sublabel": "Exterior · Stabilisation",
     "description": ""
   },
-  "caudal_fin": {
+  "Caudal_fin_ext": {
     "label": "Caudal Fin",
     "sublabel": "Exterior · Locomotion",
     "description": ""
   },
-  "caudal_keel": {
+  "Caudal_keel": {
     "label": "Caudal Keel",
     "sublabel": "Exterior · Locomotion",
     "description": ""
   },
-  "caudal_peduncle": {
+  "Caudal_peduncle": {
     "label": "Caudal Peduncle",
     "sublabel": "Exterior · Locomotion",
     "description": ""
   },
-  "claspers": {
+  "Claspers": {
     "label": "Claspers",
     "sublabel": "Exterior · Reproductive",
     "description": ""
   },
-  "dermal_denticles": {
+  "Dermal_denticles": {
     "label": "Dermal Denticles",
     "sublabel": "Exterior · Integument",
     "description": ""

@@ -15,10 +15,10 @@
     "anatomy": "The cartilaginous skeleton is lighter and more flexible than bone, enabling the tight-radius turns juveniles rely on for reef hunting. Slow-twitch red muscle fibers sustain continuous cruising; dense fast-twitch white fibers power explosive acceleration.",
     "layers": {
       "skin":        { "label": "Dermal · Skin",       "obj": "/assets/models/greatWhite/shark_skin.glb",        "mtl": null },
-      "muscle":      { "label": "Muscular · Tissue",   "obj": "/assets/models/greatWhite/shark_muscles.glb",     "mtl": null },
-      "organs":      { "label": "Organs",              "obj": "/assets/models/greatWhite/shark_organs.glb",      "mtl": null },
-      "circulatory": { "label": "Circulatory",         "obj": "/assets/models/greatWhite/shark_circulatory.glb", "mtl": null },
-      "skeleton":    { "label": "Osseous · Cartilage", "obj": "/assets/models/greatWhite/shark_skeleton.glb",   "mtl":  null }
+      "muscle":      { "label": "Muscular · Tissue",   "obj": "/assets/models/greatWhite/shark_muscles.obj",     "mtl": "/assets/models/greatWhite/shark_muscles.mtl" },
+      "organs":      { "label": "Organs",              "obj": "/assets/models/greatWhite/shark_organs.obj",      "mtl": "/assets/models/greatWhite/shark_organs.mtl" },
+      "circulatory": { "label": "Circulatory",         "obj": "/assets/models/greatWhite/shark_circulatory.obj", "mtl": "/assets/models/greatWhite/shark_circulatory.mtl" },
+      "skeleton":    { "label": "Osseous · Cartilage", "obj": "/assets/models/greatWhite/shark_skeleton.obj",   "mtl":  "/assets/models/greatWhite/shark_skeleton.mtl" }
     }
   }
 
