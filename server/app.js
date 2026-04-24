@@ -33,47 +33,49 @@ const port = process.env.PORT || process.env.NODE_PORT || 3000;
 // });
 
 const redisClient = redis.createClient({
-    url: process.env.REDISCLOUD_URL,
+    url: process.env.REDISCLOUD_URL, // must be set in heroku config
 });
 
-redisClient.on('err', err => console.log('Redis Client Error', err));
+redisClient.on('error', err => console.error('Redis Client Error', err));
 
-redisClient.connect().then(() => {
-    const app = express();
+redisClient.connect()
+    .then(() => {
+        const app = express();
 
-    // app.use(helmet());
-    app.use(helmet.contentSecurityPolicy({
-    directives: {
-        defaultSrc: ["'self'"],
-        connectSrc: ["'self'", "blob:"],
-        imgSrc:     ["'self'", "blob:", "data:"],
-        workerSrc:  ["'self'", "blob:"],
-    }
-}));
-    app.use('/assets', express.static(path.resolve(`${__dirname}/../hosted`)));
-    //app.use(favicon(`${__dirname}/../hosted/img/favicon.png`));
-    app.use(compression());
-    app.use(express.urlencoded({extended: true}));
-    app.use(express.json());
+        app.use(helmet.contentSecurityPolicy({
+            directives: {
+                defaultSrc: ["'self'"],
+                connectSrc: ["'self'", "blob:"],
+                imgSrc:     ["'self'", "blob:", "data:"],
+                workerSrc:  ["'self'", "blob:"],
+            }
+        }));
 
-    app.use(session({
-        key: 'sessionid',
-        store: new RedisStore({
-            client: redisClient,
-        }),
-        secret: 'Domo Arigato',
-        resave: false,
-        saveUninitialized: false,
-    }));
+        app.use('/assets', express.static(path.resolve(`${__dirname}/../hosted`)));
+        app.use(compression());
+        app.use(express.urlencoded({ extended: true }));
+        app.use(express.json());
 
-    app.engine('handlebars', expressHandlebars.engine({ defaultLayout: ''}));
-    app.set('view engine', 'handlebars');
-    app.set('views', `${__dirname}/../views`);
-    console.log(`dirname: ${__dirname}`)
-    router(app);
+        app.use(session({
+            key: 'sessionid',
+            store: new RedisStore({ client: redisClient }),
+            secret: process.env.SESSION_SECRET || 'Domo Arigato', // don't hardcode in prod
+            resave: false,
+            saveUninitialized: false,
+        }));
 
-    app.listen(port, (err) => {
-        if(err) { throw err }
-        console.log(`Listening on port ${port}`);
+        app.engine('handlebars', expressHandlebars.engine({ defaultLayout: '' }));
+        app.set('view engine', 'handlebars');
+        app.set('views', `${__dirname}/../views`);
+        console.log(`dirname: ${__dirname}`);
+        router(app);
+
+        app.listen(port, (err) => {
+            if (err) throw err;
+            console.log(`Listening on port ${port}`);
+        });
+    })
+    .catch((err) => {
+        console.error('Failed to connect to Redis:', err);
+        process.exit(1);
     });
-});
