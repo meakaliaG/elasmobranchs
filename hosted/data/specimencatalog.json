@@ -22,7 +22,7 @@
       "skeleton":    { "label": "Osseous · Cartilage", "obj": "/assets/models/greatWhite/shark_skeleton.obj",   "mtl":  "/assets/models/greatWhite/shark_skeleton.mtl" }
     }
   },
-   "manta_skin.obj": {
+   "manta.obj": {
     "tag": "Filter Feeder · Adult",
     "name": "Manta Ray",
     "organDataUrl": "/assets/data/mantaorgandata.json",
@@ -36,7 +36,7 @@
     "description": "Rays in the order Chondrichthyes are essentially a compressed, flattened shark. The pectoral fins are fused to the head region into a disc and, in many species, the head is raised above the disc. Most species have a long, whip-like tail and many possess at least 1 venomous spine located along the tail. On the head region, large openings or spiracles lie behind the smaller eyes and 5 gill slits are located ventrally on each side.",
     "anatomy": "The cartilaginous skeleton is lighter and more flexible than bone, enabling the tight-radius turns juveniles rely on for reef hunting. Slow-twitch red muscle fibers sustain continuous cruising; dense fast-twitch white fibers power explosive acceleration.",
     "layers": {
-      "skin":        { "label": "Dermal · Skin",       "obj": "/assets/models/manta/manta_skin.obj",        "mtl": "/assets/models/manta/manta_skin.mtl" },
+      "skin":        { "label": "Dermal · Skin",       "obj": "/assets/models/manta/manta.obj",        "mtl": "/assets/models/manta/manta.mtl" },
       "organs":      { "label": "Organs",              "obj": "/assets/models/manta/manta_organs.obj",      "mtl": "/assets/models/manta/manta_organs.mtl" },
       "skeleton":    { "label": "Osseous · Cartilage", "obj": "/assets/models/manta/manta_skeleton.obj",   "mtl":  "/assets/models/manta/manta_skeleton.mtl" }
     }

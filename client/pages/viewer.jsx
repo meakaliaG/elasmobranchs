@@ -183,11 +183,11 @@ specimenSpot.target.position.set(-4, 0, 0);
 scene.add(specimenSpot);
 scene.add(specimenSpot.target);
 
-const sideFill = new THREE.PointLight(0x224466, 5, 30);
+const sideFill = new THREE.PointLight(0x224466, 3, 30);
 sideFill.position.set(-10, 2, 4);
 scene.add(sideFill);
 
-const warmFill = new THREE.DirectionalLight(0xfff5e0, 2.5);
+const warmFill = new THREE.DirectionalLight(0xfff5e0, 1.5);
 warmFill.position.set(5, 4, 10);
 scene.add(warmFill);
 
@@ -998,7 +998,7 @@ const init = async () => {
     // swimOffset of Math.PI puts the manta on the opposite side of the figure-8
     // loadGLTF('/assets/models/greatWhite/shark_skin.glb', 0);
     loadOBJ('/assets/models/greatWhite/sharky.obj', '/assets/models/greatWhite/sharky.mtl', 0);
-    loadOBJ('/assets/models/manta/manta_skin.obj', '/assets/models/manta/manta_skin.mtl', Math.PI);
+    loadOBJ('/assets/models/manta/manta.obj', '/assets/models/manta/manta.mtl', Math.PI);
 
     animate();
 };
