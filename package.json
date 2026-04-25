@@ -4,6 +4,10 @@
   "description": "A virtual elasmobranch aquarium using Node.js, React, Three.js and Redis",
   "main": "./server/app.js",
   "author": "Meakalia Gilman",
+
+    "engines": {
+    "node": "18.x"
+  },
   "scripts": {
     "webpack": "webpack",
     "webpackWatch": "webpack watch",
