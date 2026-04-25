@@ -112,7 +112,7 @@ canvas#modelCanvas {
     color: rgba(126,200,227,0.25); line-height: 2;
 }
 
-/* ── Specimen badge (below the model when selected) ─────────────────────── */
+/* ── Specimen badge ──────────────────────────────────────────────────────── */
 .specimen-badge {
     position: fixed; bottom: 36px; z-index: 20;
     left: calc((100vw - var(--panel-width)) / 2);
@@ -147,20 +147,35 @@ canvas#modelCanvas {
 }
 
 /* ── Info panel ──────────────────────────────────────────────────────────── */
+/*
+ * z-index: 200 — sits above the CSS2DRenderer overlay (z-index:10),
+ * the scene dim (z-index:8), and all HUD elements (z-index:20).
+ * isolation: isolate — prevents backdrop-filter from creating a stacking
+ * context that interferes with sibling fixed elements.
+ */
 .info-panel {
-    position: fixed; right: calc(-1 * var(--panel-width));
-    top: 0; height: 100vh; width: var(--panel-width);
+    position: fixed;
+    right: calc(-1 * var(--panel-width));
+    top: 0;
+    height: 100vh;
+    width: var(--panel-width);
+    max-width: 100vw;           /* never wider than the viewport */
     background: var(--panel-bg);
     backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
     border-left: 1px solid var(--panel-border);
-    overflow-y: auto; overflow-x: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     transition: right 0.65s var(--ease-expo);
-    z-index: 100;
+    z-index: 200;               /* above CSS2D overlay and all HUD layers */
+    isolation: isolate;         /* own stacking context — keeps backdrop-filter contained */
 }
 .info-panel.open { right: 0; }
 
 .info-panel::-webkit-scrollbar { width: 2px; }
-.info-panel::-webkit-scrollbar-thumb { background: rgba(126,200,227,0.15); border-radius: 2px; }
+.info-panel::-webkit-scrollbar-thumb {
+    background: rgba(126,200,227,0.15); border-radius: 2px;
+}
 
 /* Panel header */
 .panel-header {
@@ -186,8 +201,10 @@ canvas#modelCanvas {
     color: var(--text-accent); margin-bottom: 10px;
 }
 .species-name {
-    font-family: var(--font-display); font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
     font-weight: 400; color: #d4f0ff; line-height: 1.05; margin-bottom: 6px;
+    word-break: break-word;     /* prevent long names from overflowing panel */
 }
 .species-latin {
     font-family: var(--font-display); font-style: italic;
@@ -204,6 +221,7 @@ canvas#modelCanvas {
     border: 1px solid rgba(126,200,227,0.09);
     padding: 12px 14px; border-radius: 3px;
     background: rgba(126,200,227,0.02);
+    min-width: 0;               /* allow grid cells to shrink below content size */
 }
 .stat-label {
     font-family: var(--font-mono); font-size: 8px;
@@ -213,6 +231,7 @@ canvas#modelCanvas {
 .stat-value {
     font-family: var(--font-display); font-size: 20px;
     color: var(--text-primary); font-weight: 400;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .stat-unit {
     font-family: var(--font-mono); font-size: 9px;
@@ -253,33 +272,33 @@ canvas#modelCanvas {
 .layer-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 
 /* Skin */
-.layer-btn[data-layer="skin"]              { border-color: rgba(63,106,136,0.3);  color: rgba(100,175,215,0.5); }
-.layer-btn[data-layer="skin"] .layer-dot   { background: rgba(100,175,215,0.3); }
-.layer-btn[data-layer="skin"].active       { border-color: rgba(100,175,215,0.7); color: #6ab9e1; background: rgba(100,175,215,0.08); }
+.layer-btn[data-layer="skin"]            { border-color: rgba(63,106,136,0.3);  color: rgba(100,175,215,0.5); }
+.layer-btn[data-layer="skin"] .layer-dot { background: rgba(100,175,215,0.3); }
+.layer-btn[data-layer="skin"].active     { border-color: rgba(100,175,215,0.7); color: #6ab9e1; background: rgba(100,175,215,0.08); }
 .layer-btn[data-layer="skin"].active .layer-dot { background: #6ab9e1; box-shadow: 0 0 6px #6ab9e1; }
 
 /* Muscle */
-.layer-btn[data-layer="muscle"]              { border-color: rgba(122,32,32,0.3);  color: rgba(200,80,80,0.5); }
-.layer-btn[data-layer="muscle"] .layer-dot   { background: rgba(200,80,80,0.3); }
-.layer-btn[data-layer="muscle"].active       { border-color: rgba(200,80,80,0.7); color: #c85050; background: rgba(200,80,80,0.08); }
+.layer-btn[data-layer="muscle"]            { border-color: rgba(122,32,32,0.3);  color: rgba(200,80,80,0.5); }
+.layer-btn[data-layer="muscle"] .layer-dot { background: rgba(200,80,80,0.3); }
+.layer-btn[data-layer="muscle"].active     { border-color: rgba(200,80,80,0.7); color: #c85050; background: rgba(200,80,80,0.08); }
 .layer-btn[data-layer="muscle"].active .layer-dot { background: #c85050; box-shadow: 0 0 6px #c85050; }
 
 /* Organs */
-.layer-btn[data-layer="organs"]              { border-color: rgba(32, 122, 83, 0.3);  color: rgba(80, 184, 200, 0.5); }
-.layer-btn[data-layer="organs"] .layer-dot   { background: rgba(80, 200, 176, 0.3); }
-.layer-btn[data-layer="organs"].active       { border-color: rgba(80, 184, 200, 0.7); color: #57c9d8; background: rgba(80, 184, 200, 0.08); }
+.layer-btn[data-layer="organs"]            { border-color: rgba(32,122,83,0.3);  color: rgba(80,184,200,0.5); }
+.layer-btn[data-layer="organs"] .layer-dot { background: rgba(80,200,176,0.3); }
+.layer-btn[data-layer="organs"].active     { border-color: rgba(80,184,200,0.7); color: #57c9d8; background: rgba(80,184,200,0.08); }
 .layer-btn[data-layer="organs"].active .layer-dot { background: #57c9d8; box-shadow: 0 0 6px #57c9d8; }
 
 /* Circulatory */
-.layer-btn[data-layer="circulatory"]              { border-color: rgba(99, 32, 122, 0.3);  color: rgba(196, 80, 200,0.5); }
-.layer-btn[data-layer="circulatory"] .layer-dot   { background: rgba(196, 80, 200, 0.3); }
-.layer-btn[data-layer="circulatory"].active       { border-color: rgba(178, 80, 200, 0.7); color: #c650c8; background: rgba(200,80,80,0.08); }
+.layer-btn[data-layer="circulatory"]            { border-color: rgba(99,32,122,0.3);  color: rgba(196,80,200,0.5); }
+.layer-btn[data-layer="circulatory"] .layer-dot { background: rgba(196,80,200,0.3); }
+.layer-btn[data-layer="circulatory"].active     { border-color: rgba(178,80,200,0.7); color: #c650c8; background: rgba(200,80,80,0.08); }
 .layer-btn[data-layer="circulatory"].active .layer-dot { background: #c650c8; box-shadow: 0 0 6px #c650c8; }
 
 /* Skeleton */
-.layer-btn[data-layer="skeleton"]              { border-color: rgba(212,201,168,0.2);  color: rgba(212,201,168,0.45); }
-.layer-btn[data-layer="skeleton"] .layer-dot   { background: rgba(212,201,168,0.3); }
-.layer-btn[data-layer="skeleton"].active       { border-color: rgba(212,201,168,0.65); color: #d4c9a8; background: rgba(212,201,168,0.07); }
+.layer-btn[data-layer="skeleton"]            { border-color: rgba(212,201,168,0.2);  color: rgba(212,201,168,0.45); }
+.layer-btn[data-layer="skeleton"] .layer-dot { background: rgba(212,201,168,0.3); }
+.layer-btn[data-layer="skeleton"].active     { border-color: rgba(212,201,168,0.65); color: #d4c9a8; background: rgba(212,201,168,0.07); }
 .layer-btn[data-layer="skeleton"].active .layer-dot { background: #d4c9a8; box-shadow: 0 0 6px rgba(212,201,168,0.5); }
 
 /* Anatomy note */
@@ -303,7 +322,10 @@ canvas#modelCanvas {
 @media (max-width: 600px) {
     :root { --panel-width: 100vw; }
 
-    .info-panel { right: -100vw; border-left: none; border-top: 1px solid var(--panel-border); }
+    .info-panel {
+        right: -100vw; border-left: none;
+        border-top: 1px solid var(--panel-border);
+    }
     .info-panel.open { right: 0; }
 
     .specimen-badge { left: 50%; }
@@ -312,56 +334,81 @@ canvas#modelCanvas {
 }
 
 /* ─── Organ Label (CSS2DRenderer) ────────────────────────────────────────────
-   Injected into the DOM by CSS2DObject; positioned by CSS2DRenderer.
-   pointer-events: none is set on the renderer's root element, so these
-   labels never block clicks on the canvas.
-   ───────────────────────────────────────────────────────────────────────── */
+ *
+ * Architecture — zero-size anchor pattern:
+ *
+ *   CSS2DObject
+ *     └─ .organ-label-wrapper   ← CSS2DRenderer positions this via inline
+ *                                  style.transform: translate(-50%,-50%) translate(Xpx,Ypx)
+ *                                  Width/height = 0 so the centering hits
+ *                                  exactly the projected 3D point.
+ *          └─ .organ-label      ← absolutely positioned relative to the
+ *                                  zero-size anchor. left:20px + translateY(-50%)
+ *                                  places the card to the right of and
+ *                                  vertically centered on the click point.
+ *                                  This transform is NOT affected by the
+ *                                  renderer's transform because it's on a
+ *                                  child element.
+ *
+ * Previous problem: both transforms were on the SAME element.
+ * CSS2DRenderer sets inline style.transform; CSS class transform is lower
+ * priority and was ignored, so the label sat dead-centre on the model.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+.organ-label-wrapper {
+    position: relative;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
 
 .organ-label {
-    position:        relative;
-    background:      rgba(0, 8, 20, 0.88);
-    border:          1px solid rgba(0, 200, 255, 0.30);
+    position:        absolute;
+    left:            20px;           /* clear of the 3D anchor to the right */
+    top:             0;
+    transform:       translateY(-50%); /* vertically centred on the anchor */
+    width:           230px;
+    background:      rgba(0, 8, 20, 0.90);
+    border:          1px solid rgba(0, 200, 255, 0.28);
     border-left:     2px solid rgba(0, 200, 255, 0.70);
     border-radius:   6px;
     padding:         10px 14px 10px 12px;
-    max-width:       230px;
-    min-width:       140px;
     backdrop-filter: blur(8px);
-    /* Offset so the label sits to the right of the clicked point */
-    transform:       translateX(14px) translateY(-50%);
-    /* Entrance animation */
+    pointer-events:  none;
     animation:       ol-appear 0.18s ease-out both;
+    /* Clamp to viewport so the label never disappears off the right edge */
+    max-width:       calc(100vw - var(--panel-width) - 40px);
 }
 
 @keyframes ol-appear {
-    from { opacity: 0; transform: translateX(8px) translateY(-50%) scale(0.96); }
-    to   { opacity: 1; transform: translateX(14px) translateY(-50%) scale(1);   }
+    from { opacity: 0; transform: translateY(-50%) scale(0.96) translateX(-4px); }
+    to   { opacity: 1; transform: translateY(-50%) scale(1)    translateX(0px);  }
 }
 
-/* Thin connector line from label left edge toward the model */
+/* Connector line from anchor to label left edge */
 .organ-label::before {
-    content:          '';
-    position:         absolute;
-    left:             -18px;
-    top:              50%;
-    width:            16px;
-    height:           1px;
-    background:       rgba(0, 200, 255, 0.55);
-    transform:        translateY(-50%);
+    content:    '';
+    position:   absolute;
+    left:       -20px;          /* span from the anchor (left:20px means 20px gap) */
+    top:        50%;
+    width:      18px;
+    height:     1px;
+    background: rgba(0, 200, 255, 0.50);
+    transform:  translateY(-50%);
 }
 
-/* Small dot at the anchor point */
+/* Dot at the 3D anchor point */
 .organ-label::after {
-    content:          '';
-    position:         absolute;
-    left:             -22px;
-    top:              50%;
-    width:            5px;
-    height:           5px;
-    border-radius:    50%;
-    background:       #00d4ff;
-    transform:        translateY(-50%);
-    box-shadow:       0 0 6px rgba(0, 212, 255, 0.8);
+    content:       '';
+    position:      absolute;
+    left:          -25px;
+    top:           50%;
+    width:         5px;
+    height:        5px;
+    border-radius: 50%;
+    background:    #00d4ff;
+    transform:     translateY(-50%);
+    box-shadow:    0 0 6px rgba(0, 212, 255, 0.8);
 }
 
 .ol-header {
@@ -369,18 +416,18 @@ canvas#modelCanvas {
 }
 
 .ol-name {
-    color:       #00d4ff;
-    font-size:   12px;
-    font-weight: 700;
+    color:          #00d4ff;
+    font-size:      12px;
+    font-weight:    700;
     letter-spacing: 0.02em;
-    line-height: 1.2;
+    line-height:    1.2;
 }
 
 .ol-sub {
-    color:       rgba(100, 200, 230, 0.65);
-    font-size:   10px;
-    font-weight: 400;
-    margin-top:  2px;
+    color:          rgba(100, 200, 230, 0.65);
+    font-size:      10px;
+    font-weight:    400;
+    margin-top:     2px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
@@ -391,13 +438,13 @@ canvas#modelCanvas {
     line-height: 1.55;
 }
 
-/* Mesh name debug line — dim, shown at bottom of label */
+/* Mesh name debug line */
 .ol-mesh-id {
-    margin-top:  7px;
-    padding-top: 6px;
-    border-top:  1px solid rgba(0, 200, 255, 0.12);
-    color:       rgba(0, 180, 255, 0.35);
-    font-size:   9px;
-    font-family: monospace;
+    margin-top:     7px;
+    padding-top:    6px;
+    border-top:     1px solid rgba(0, 200, 255, 0.12);
+    color:          rgba(0, 180, 255, 0.35);
+    font-size:      9px;
+    font-family:    monospace;
     letter-spacing: 0.04em;
 }
