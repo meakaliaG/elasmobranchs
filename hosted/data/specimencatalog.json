@@ -1,3 +1,26 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:2bbfe36b5da8a5734fa330c6bb1fde06836fa7a6962c5efd0bbdf27902f62955
-size 2029
+{
+  "_note": "Keys are the bare filename of the loaded GLB/OBJ (e.g. 'Sharkswim2.glb'). Add new specimens here; no changes to viewer.jsx needed.",
+
+  "shark_skin.glb": {
+    "tag": "Apex Predator · Juvenile",
+    "name": "Great White Shark",
+    "latin": "Carcharodon carcharias",
+    "stats": [
+      { "label": "Est. Length",  "value": "1.5",            "unit": "m"  },
+      { "label": "Depth Range",  "value": "0 – 250",        "unit": "m"  },
+      { "label": "Order",        "value": "Lamniformes",    "unit": ""   },
+      { "label": "Class",        "value": "Chondrichthyes", "unit": ""   }
+    ],
+    "description": "Born fully formed and immediately independent, juvenile great whites hunt bony fish and rays in coastal shallows before transitioning to marine mammal prey as adults. Their dermal denticles — microscopic tooth-like scales — streamline flow and nearly silence passage through water.",
+    "anatomy": "The cartilaginous skeleton is lighter and more flexible than bone, enabling the tight-radius turns juveniles rely on for reef hunting. Slow-twitch red muscle fibers sustain continuous cruising; dense fast-twitch white fibers power explosive acceleration.",
+    "layers": {
+      "skin":        { "label": "Dermal · Skin",       "obj": "/assets/models/greatWhite/shark_skin.glb",        "mtl": null },
+      "muscle":      { "label": "Muscular · Tissue",   "obj": "/assets/models/greatWhite/shark_muscles.obj",     "mtl": "/assets/models/greatWhite/shark_muscles.mtl" },
+      "organs":      { "label": "Organs",              "obj": "/assets/models/greatWhite/shark_organs.obj",      "mtl": "/assets/models/greatWhite/shark_organs.mtl" },
+      "circulatory": { "label": "Circulatory",         "obj": "/assets/models/greatWhite/shark_circulatory.obj", "mtl": "/assets/models/greatWhite/shark_circulatory.mtl" },
+      "skeleton":    { "label": "Osseous · Cartilage", "obj": "/assets/models/greatWhite/shark_skeleton.obj",   "mtl":  "/assets/models/greatWhite/shark_skeleton.mtl" }
+    }
+  }
+
+
+}
