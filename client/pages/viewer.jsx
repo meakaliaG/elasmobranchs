@@ -28,14 +28,19 @@ let _setActiveLayers = null;
 
 // ─── React Components ─────────────────────────────────────────────────────────
 
-const StatCell = ({ label, value, unit }) => (
-    <div className='stat-cell'>
-        <div className='stat-label'>{label}</div>
-        <div className='stat-value'>
-            {value}<span className='stat-unit'>{unit}</span>
+const StatCell = ({ label, value, unit }) => {
+    // Use the text variant for non-numeric values (taxonomy names, order, class, etc.)
+    // Numeric values keep the large display font; text values get the smaller mono font.
+    const isText = isNaN(parseFloat(value)) && !/^\d/.test(String(value));
+    return (
+        <div className={`stat-cell${isText ? ' stat-cell--text' : ''}`}>
+            <div className='stat-label'>{label}</div>
+            <div className='stat-value'>
+                {value}<span className='stat-unit'>{unit}</span>
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const LayerButton = ({ layerKey, label, active, onClick }) => (
     <button
