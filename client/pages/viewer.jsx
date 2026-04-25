@@ -965,8 +965,8 @@ const animate = () => {
 const init = async () => {
     try {
         [ORGAN_DATA, SPECIMEN_CATALOG] = await Promise.all([
-            fetch('/assets/data/sharkorganData.json').then(r => { if (!r.ok) throw r; return r.json(); }),
-            fetch('/assets/data/specimenCatalog.json').then(r => { if (!r.ok) throw r; return r.json(); }),
+            fetch('/assets/data/sharkorgandata.json').then(r => { if (!r.ok) throw r; return r.json(); }),
+            fetch('/assets/data/specimencatalog.json').then(r => { if (!r.ok) throw r; return r.json(); }),
         ]);
         console.log(
             `[Atlas] Data loaded — ${Object.keys(SPECIMEN_CATALOG).length} specimen(s), ` +
