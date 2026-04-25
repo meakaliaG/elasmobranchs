@@ -14,10 +14,14 @@ const app = express();
 
 app.use(helmet.contentSecurityPolicy({
     directives: {
-        defaultSrc: ["'self'"],
-        connectSrc: ["'self'", "blob:"],
-        imgSrc:     ["'self'", "blob:", "data:"],
-        workerSrc:  ["'self'", "blob:"],
+        defaultSrc:  ["'self'"],
+        connectSrc:  ["'self'", "blob:"],
+        imgSrc:      ["'self'", "blob:", "data:"],
+        workerSrc:   ["'self'", "blob:"],
+        scriptSrc:   ["'self'"],
+        styleSrc:    ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        styleSrcElem:["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc:     ["'self'", "https://fonts.gstatic.com"],
     }
 }));
 

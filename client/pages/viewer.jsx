@@ -1,20 +1,8 @@
 /**
  * viewer.jsx — Elasmobranch Atlas
  *
- * Three.js underwater scene + React info panel.
- * - AnimationMixer drives GLTF swim-cycle clips independently of the swim path
- * - Multi-layer: any combination of OBJ layers can be visible simultaneously
- * - Canonical transform: all layers share the scale/offset computed from the
- *   skin bounding box, keeping every layer perfectly aligned in 3D space
- * - CSS2DRenderer organ labels: click any sub-mesh to highlight and label it
- * - ORGAN_DATA and SPECIMEN_CATALOG loaded from JSON at startup
- *
- * ── KEY FIX ──────────────────────────────────────────────────────────────────
- * THREE.Timer requires clock.update() at the TOP of each animate() frame,
- * before getDelta() / getElapsed() are called. Without it both always return
- * 0: showcaseBlend never advances, the model never lerps to SHOWCASE_POS,
- * and stage rings stay at opacity 0 forever.
- * ─────────────────────────────────────────────────────────────────────────────
+ * Multi-specimen architecture: each loaded model owns its own state object
+ * (pivot, skinMesh, clickProxy, layerModels, mixer, canonicalScale, …).
  */
 
 const React      = require('react');
@@ -30,16 +18,10 @@ import { FBXLoader }       from 'three/examples/jsm/loaders/FBXLoader.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
-// Populated async in init() before any model loads.
-// JSON files should be served at:
-//   /assets/data/organData.json
-//   /assets/data/specimenCatalog.json
-
 let ORGAN_DATA       = {};
 let SPECIMEN_CATALOG = {};
 
 // ─── React <-> Three.js Bridge ────────────────────────────────────────────────
-
 let _setPanelOpen    = null;
 let _setPanelData    = null;
 let _setActiveLayers = null;
@@ -68,8 +50,7 @@ const LayerButton = ({ layerKey, label, active, onClick }) => (
 
 const InfoPanel = ({ isOpen, data, activeLayers, onClose, onLayerToggle }) => {
     if (!data) return null;
-    const LAYER_KEYS = ['skin', 'muscle', 'organs', 'circulatory', 'skeleton'];
-
+    const LAYER_KEYS = Object.keys(data.layers ?? {});
     return (
         <aside className={`info-panel${isOpen ? ' open' : ''}`} id='infoPanel'>
             <div className='panel-header'>
@@ -164,8 +145,6 @@ renderer.toneMappingExposure = 1.6;
 renderer.shadowMap.enabled   = true;
 renderer.shadowMap.type      = THREE.PCFShadowMap;
 
-// ─── CSS2D Label Renderer ─────────────────────────────────────────────────────
-
 const labelRenderer = new CSS2DRenderer();
 labelRenderer.setSize(window.innerWidth, window.innerHeight);
 labelRenderer.domElement.style.cssText =
@@ -208,6 +187,10 @@ const sideFill = new THREE.PointLight(0x224466, 5, 30);
 sideFill.position.set(-10, 2, 4);
 scene.add(sideFill);
 
+const warmFill = new THREE.DirectionalLight(0xfff5e0, 2.5);
+warmFill.position.set(5, 4, 10);
+scene.add(warmFill);
+
 const CAUSTIC_DEFS = [
     { color: 0x0055bb, base: 6.0, radius: 28 },
     { color: 0x007acc, base: 5.0, radius: 22 },
@@ -222,8 +205,6 @@ const causticLights = CAUSTIC_DEFS.map((def, i) => {
     return { light, phase, base: def.base, speed: 0.28 + i * 0.04 };
 });
 
-// ── God Rays ──────────────────────────────────────────────────────────────────
-
 for (let i = 0; i < 7; i++) {
     const h   = 22 + Math.random() * 8;
     const geo = new THREE.ConeGeometry(2 + Math.random() * 2.5, h, 5, 1, true);
@@ -237,8 +218,6 @@ for (let i = 0; i < 7; i++) {
     scene.add(ray);
 }
 
-// ── Water Surface ─────────────────────────────────────────────────────────────
-
 const surfaceGeo = new THREE.PlaneGeometry(80, 80, 32, 32);
 const surfaceMesh = new THREE.Mesh(surfaceGeo, new THREE.MeshStandardMaterial({
     color: 0x003d55, transparent: true, opacity: 0.55,
@@ -251,8 +230,6 @@ scene.add(surfaceMesh);
 const surfacePositions = surfaceGeo.attributes.position;
 const surfaceOrigY = new Float32Array(surfacePositions.count);
 for (let i = 0; i < surfacePositions.count; i++) surfaceOrigY[i] = surfacePositions.getY(i);
-
-// ── Particles ─────────────────────────────────────────────────────────────────
 
 const PARTICLE_COUNT = 1400;
 const pArr   = new Float32Array(PARTICLE_COUNT * 3);
@@ -286,13 +263,11 @@ const stageRings = [
 ];
 stageRings.forEach(r => {
     r.rotation.x = Math.PI / 2;
-    // Sit at SHOWCASE_POS XZ, slightly below the model centre so they
-    // encircle the body rather than appearing at mid-air above the shark
     r.position.set(SHOWCASE_POS.x, SHOWCASE_POS.y - 1.2, SHOWCASE_POS.z);
     scene.add(r);
 });
 
-// ── Procedural Shark Placeholder ──────────────────────────────────────────────
+// ── Procedural Placeholder ────────────────────────────────────────────────────
 
 let sharkRoot  = null;
 let sharkPivot = null;
@@ -303,24 +278,18 @@ const buildPlaceholderShark = () => {
     const pivot = new THREE.Group();
     pivot.rotation.y = Math.PI / 2;
     root.add(pivot);
-
     const darkMat = new THREE.MeshStandardMaterial({ color: 0x3d5f74, roughness: 0.35, metalness: 0.45 });
     const bellMat = new THREE.MeshStandardMaterial({ color: 0x8aaabb, roughness: 0.4,  metalness: 0.2  });
-
     const body = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.30, 1.85, 24), darkMat);
     body.rotation.z = Math.PI / 2; body.castShadow = true; pivot.add(body);
-
     const belly = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.24, 1.5, 16), bellMat);
     belly.rotation.z = Math.PI / 2; belly.position.set(0.1, -0.08, 0); belly.scale.z = 0.55; pivot.add(belly);
-
     const snout = new THREE.Mesh(new THREE.ConeGeometry(0.19, 0.5, 10), darkMat);
     snout.rotation.z = -Math.PI / 2; snout.position.x = 1.15; pivot.add(snout);
-
     const dShape = new THREE.Shape();
     dShape.moveTo(0, 0); dShape.quadraticCurveTo(-0.06, 0.38, 0.08, 0.68); dShape.lineTo(0.52, 0); dShape.closePath();
     const dorsal = new THREE.Mesh(new THREE.ShapeGeometry(dShape), darkMat);
     dorsal.position.set(0.1, 0.38, 0); dorsal.rotation.y = Math.PI / 2; pivot.add(dorsal);
-
     const pShape = new THREE.Shape();
     pShape.moveTo(0, 0); pShape.quadraticCurveTo(0.08, -0.28, -0.06, -0.62); pShape.lineTo(0.52, -0.18); pShape.closePath();
     [1, -1].forEach(side => {
@@ -328,7 +297,6 @@ const buildPlaceholderShark = () => {
         fin.position.set(0.22, -0.1, side * 0.4);
         fin.rotation.x = -side * 0.32; fin.rotation.y = side > 0 ? 0 : Math.PI; pivot.add(fin);
     });
-
     const tg = new THREE.Group();
     tg.position.x = -1.0; pivot.add(tg);
     const tailShape = new THREE.Shape();
@@ -336,13 +304,11 @@ const buildPlaceholderShark = () => {
     tailShape.lineTo(-0.18, 0); tailShape.quadraticCurveTo(-0.15, -0.28, -0.44, -0.45); tailShape.closePath();
     const tailMesh = new THREE.Mesh(new THREE.ShapeGeometry(tailShape), darkMat);
     tailMesh.rotation.y = Math.PI / 2; tg.add(tailMesh);
-
     const eyeMat = new THREE.MeshStandardMaterial({ color: 0x000008, roughness: 0.05, metalness: 0.6 });
     [0.33, -0.33].forEach(side => {
         const eye = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 10), eyeMat);
         eye.position.set(0.85, 0.14, side); pivot.add(eye);
     });
-
     scene.add(root);
     return { root, pivot, tg };
 };
@@ -364,40 +330,47 @@ const swimPos = (t) => {
     );
 };
 
-// ─── Canonical Transform ──────────────────────────────────────────────────────
+// ─── Per-Specimen State ───────────────────────────────────────────────────────
+//
+// Each loaded model owns its own state object. Nothing about one specimen
+// can be overwritten by loading another.
+//
+//   specimens   — Map<fileName, specimenState>
+//   activeSpec  — the currently showcased specimen, or null
 
-let canonicalScale     = 1;
-let canonicalNegCenter = new THREE.Vector3();
+const makeSpecimenState = (fileName, swimOffset = 0) => ({
+    fileName,
+    // Three.js objects
+    pivot:          null,   // Group — swim path drives position/rotation of this
+    skinMesh:       null,   // gltf.scene or OBJ root — ONLY the skin geometry
+    clickProxy:     null,   // invisible sphere for SkinnedMesh raycast
+    layerModels:    {},     // { layerKey: Object3D }
+    mixer:          null,   // AnimationMixer, or null for OBJ
+    // Canonical transform (computed from skin bounding box)
+    canonicalScale: 1,
+    canonicalNeg:   new THREE.Vector3(),
+    // Swim state
+    swimOffset,             // phase offset so specimens don't overlap on path
+    showcaseBlend:  0,      // 0 = swimming freely, 1 = at SHOWCASE_POS
+    frozenSwimT:    0,      // swimT value at moment of selection
+});
 
-const computeCanonical = (object) => {
+const specimens  = new Map();   // fileName -> specimenState
+let   activeSpec = null;        // currently showcased specimen (or null)
+
+// Per-specimen canonical helpers
+const computeCanonical = (spec, object) => {
     const box    = new THREE.Box3().setFromObject(object);
     const size   = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    canonicalScale = 3 / Math.max(size.x, size.y, size.z);
-    canonicalNegCenter.copy(center).multiplyScalar(-canonicalScale);
+    spec.canonicalScale = 3 / Math.max(size.x, size.y, size.z);
+    spec.canonicalNeg.copy(center).multiplyScalar(-spec.canonicalScale);
 };
 
-const applyCanonical = (object) => {
-    object.scale.setScalar(canonicalScale);
-    object.position.copy(canonicalNegCenter);
+const applyCanonical = (spec, object) => {
+    object.scale.setScalar(spec.canonicalScale);
+    object.position.copy(spec.canonicalNeg);
 };
-
-// ─── Model State ──────────────────────────────────────────────────────────────
-
-let skinModel       = null;   // the pivot Group — swim path drives this
-let skinMesh        = null;   // gltf.scene inside the pivot — ONLY the skin geometry.
-                               // Toggling skin visibility must use skinMesh, NOT skinModel:
-                               // skinModel is the parent of all layer children, so
-                               // skinModel.visible = false would hide every layer too.
-let layerModels     = {};
-let currentFileName = null;
-let mixer           = null;
-
-// Invisible proxy mesh — reliable raycast target for animated SkinnedMesh GLTF.
-// SkinnedMesh.raycast() uses the geometry bounding sphere in rest-pose space,
-// which never matches the live animated position. A plain SphereGeometry
-// parented to the pivot always raycasts correctly at the model's true location.
-let clickProxy = null;
 
 // ─── Organ Highlight State ────────────────────────────────────────────────────
 
@@ -415,15 +388,39 @@ const HIGHLIGHT_MAT = new THREE.MeshStandardMaterial({
     opacity:     0.92,
 });
 
+// ─── Layer Material Palette ───────────────────────────────────────────────────
+
+const LAYER_MATS = {
+    muscle: new THREE.MeshStandardMaterial({
+        color: 0xc0392b, roughness: 0.65, metalness: 0.05,
+        side: THREE.DoubleSide, transparent: true, opacity: 0.95,
+    }),
+    organs: new THREE.MeshStandardMaterial({
+        color: 0x8e44ad, roughness: 0.5, metalness: 0.05,
+        side: THREE.DoubleSide, transparent: true, opacity: 0.92,
+    }),
+    circulatory: new THREE.MeshStandardMaterial({
+        color: 0xe74c3c, emissive: new THREE.Color(0x3a0000),
+        roughness: 0.35, metalness: 0.1,
+        side: THREE.DoubleSide, transparent: true, opacity: 0.88,
+    }),
+    skeleton: new THREE.MeshStandardMaterial({
+        color: 0xe8d5a3, roughness: 0.55, metalness: 0.08,
+        side: THREE.DoubleSide, transparent: true, opacity: 0.97,
+    }),
+};
+
 // ─── Label Helpers ────────────────────────────────────────────────────────────
 
 const showOrganLabel = (mesh, worldPoint) => {
     hideOrganLabel();
-
     const data  = ORGAN_DATA[mesh.name];
     const label = data?.label       ?? mesh.name ?? 'Unknown Structure';
     const sub   = data?.sublabel    ?? mesh.userData.layerKey ?? '';
     const desc  = data?.description ?? 'No anatomical data available for this structure.';
+
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'position:absolute;pointer-events:none;';
 
     const div = document.createElement('div');
     div.className = 'organ-label';
@@ -435,8 +432,9 @@ const showOrganLabel = (mesh, worldPoint) => {
         <div class="ol-desc">${desc}</div>
         <div class="ol-mesh-id">${mesh.name || '—'}</div>
     `;
+    wrapper.appendChild(div);
 
-    const labelObj = new CSS2DObject(div);
+    const labelObj = new CSS2DObject(wrapper);
     labelObj.position.copy(worldPoint);
     scene.add(labelObj);
     activeLabelObject = labelObj;
@@ -473,27 +471,28 @@ const deselectOrgan = () => {
 // ─── Layer Toggle ─────────────────────────────────────────────────────────────
 
 const toggleLayer = (layerKey, visible) => {
+    if (!activeSpec) return;
+
     if (layerKey === 'skin') {
-        // Use skinMesh (gltf.scene), NOT skinModel (the pivot).
-        // The pivot is the parent of every layer child — hiding it hides them all.
-        if (skinMesh) skinMesh.visible = visible;
+        // Target skinMesh (just the geometry), NOT the pivot (parent of layers).
+        if (activeSpec.skinMesh) activeSpec.skinMesh.visible = visible;
         return;
     }
 
     if (!visible) {
-        if (layerModels[layerKey]) {
+        if (activeSpec.layerModels[layerKey]) {
             if (selectedOrganMesh?.userData.layerKey === layerKey) deselectOrgan();
-            layerModels[layerKey].visible = false;
+            activeSpec.layerModels[layerKey].visible = false;
         }
         return;
     }
 
-    if (layerModels[layerKey]) {
-        layerModels[layerKey].visible = true;
+    if (activeSpec.layerModels[layerKey]) {
+        activeSpec.layerModels[layerKey].visible = true;
         return;
     }
 
-    const entry    = SPECIMEN_CATALOG[currentFileName];
+    const entry    = SPECIMEN_CATALOG[activeSpec.fileName];
     const layerDef = entry?.layers?.[layerKey];
     if (!layerDef?.obj) return;
 
@@ -501,8 +500,10 @@ const toggleLayer = (layerKey, visible) => {
 
     const isGLB = layerDef.obj.toLowerCase().endsWith('.glb');
 
+    // Capture spec so async callbacks always reference the right specimen
+    const spec = activeSpec;
+
     if (isGLB) {
-        // ── GLB layer ─────────────────────────────────────────────────────
         new GLTFLoader().load(
             layerDef.obj,
             (gltf) => {
@@ -515,59 +516,58 @@ const toggleLayer = (layerKey, visible) => {
                     const mats = Array.isArray(child.material) ? child.material : [child.material];
                     mats.forEach(m => { m.side = THREE.DoubleSide; });
                 });
-                applyCanonical(root);
-                layerModels[layerKey] = root;
+                applyCanonical(spec, root);
+                spec.layerModels[layerKey] = root;
                 root.visible = true;
-                skinModel.add(root);
+                spec.pivot.add(root);
                 const names = [];
                 root.traverse(c => { if (c.isMesh && c.name) names.push(c.name); });
                 if (names.length) console.log(`[${layerKey}] mesh names →`, names);
                 setStatus('');
             },
-            xhr => xhr.total
-                ? setStatus(`${layerDef.label} ${Math.round((xhr.loaded / xhr.total) * 100)}%`)
-                : setStatus(`${layerDef.label} loading…`),
+            xhr => xhr.total ? setStatus(`${layerDef.label} ${Math.round((xhr.loaded / xhr.total) * 100)}%`) : null,
             err => { console.error(err); setStatus(`Failed to load ${layerDef.label}.`, true); },
         );
     } else {
-        // ── OBJ layer (with optional MTL) ─────────────────────────────────
         const doLoad = (materials) => {
             const loader = new OBJLoader();
             if (materials) loader.setMaterials(materials);
             loader.load(
                 layerDef.obj,
                 (obj) => {
+                    const paletteMat = LAYER_MATS[layerKey] ?? new THREE.MeshStandardMaterial({
+                        color: 0x8aaabb, roughness: 0.55, metalness: 0.1, side: THREE.DoubleSide,
+                    });
                     obj.traverse(child => {
                         if (!child.isMesh) return;
                         child.castShadow        = true;
                         child.receiveShadow     = true;
                         child.userData.layerKey = layerKey;
                         child.geometry.computeVertexNormals();
-                        if (!materials) {
-                            child.material = new THREE.MeshStandardMaterial({
-                                color: 0x8aaabb, roughness: 0.55, metalness: 0.1, side: THREE.DoubleSide,
-                            });
-                        } else {
+                        const hasMtlTexture = materials && (() => {
+                            const mats = Array.isArray(child.material) ? child.material : [child.material];
+                            return mats.some(m => m.map || m.normalMap || m.roughnessMap);
+                        })();
+                        if (hasMtlTexture) {
                             const mats = Array.isArray(child.material) ? child.material : [child.material];
                             mats.forEach(m => { m.side = THREE.DoubleSide; });
+                        } else {
+                            child.material = paletteMat;
                         }
                     });
-                    applyCanonical(obj);
-                    layerModels[layerKey] = obj;
+                    applyCanonical(spec, obj);
+                    spec.layerModels[layerKey] = obj;
                     obj.visible = true;
-                    skinModel.add(obj);
+                    spec.pivot.add(obj);
                     const names = [];
                     obj.traverse(c => { if (c.isMesh && c.name) names.push(c.name); });
                     if (names.length) console.log(`[${layerKey}] mesh names →`, names);
                     setStatus('');
                 },
-                xhr => xhr.total
-                    ? setStatus(`${layerDef.label} ${Math.round((xhr.loaded / xhr.total) * 100)}%`)
-                    : setStatus(`${layerDef.label} loading…`),
+                xhr => xhr.total ? setStatus(`${layerDef.label} ${Math.round((xhr.loaded / xhr.total) * 100)}%`) : null,
                 err => { console.error(err); setStatus(`Failed to load ${layerDef.label}.`, true); },
             );
         };
-
         if (layerDef.mtl) {
             new MTLLoader().load(layerDef.mtl, mats => { mats.preload(); doLoad(mats); });
         } else {
@@ -576,22 +576,39 @@ const toggleLayer = (layerKey, visible) => {
     }
 };
 
-// ─── Selection State ──────────────────────────────────────────────────────────
-
-let isSelected    = false;
-let showcaseBlend = 0;
-let frozenSwimT   = 0;
-let showcaseRotY  = 0;
+// ─── Specimen Selection ───────────────────────────────────────────────────────
 
 const easeInOut = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 
-const selectSpecimen = () => {
-    if (isSelected) return;
-    isSelected   = true;
-    frozenSwimT  = swimT;
-    showcaseRotY = (skinModel ?? sharkRoot)?.rotation.y ?? 0;
+const selectSpecimen = async (spec) => {
+    if (activeSpec === spec) return;
 
-    const entry = SPECIMEN_CATALOG[currentFileName] ?? {
+    // Deselect any previous without running the full UI teardown
+    if (activeSpec) {
+        Object.values(activeSpec.layerModels).forEach(m => { m.visible = false; });
+        if (activeSpec.skinMesh) activeSpec.skinMesh.visible = true;
+    }
+    deselectOrgan();
+
+    activeSpec           = spec;
+    spec.frozenSwimT     = swimT + spec.swimOffset;
+
+    // Load this specimen's organ data
+    const entry = SPECIMEN_CATALOG[spec.fileName];
+    if (entry?.organDataUrl) {
+        try {
+            ORGAN_DATA = await fetch(entry.organDataUrl)
+                .then(r => { if (!r.ok) throw r; return r.json(); });
+            console.log(`[Atlas] Organ data loaded for ${entry.name} — ${Object.keys(ORGAN_DATA).length} entries`);
+        } catch (err) {
+            console.warn('[Atlas] Could not load organ data:', err);
+            ORGAN_DATA = {};
+        }
+    } else {
+        ORGAN_DATA = {};
+    }
+
+    const catalogEntry = entry ?? {
         tag: 'Marine Specimen', name: 'Unknown Species', latin: '—',
         stats: [], description: '—', anatomy: '—',
         layers: {
@@ -604,15 +621,15 @@ const selectSpecimen = () => {
     };
 
     const badge = document.getElementById('specimenBadge');
-    if (badge) badge.querySelector('.sb-latin').textContent = entry.latin;
+    if (badge) badge.querySelector('.sb-latin').textContent = catalogEntry.latin;
 
-    _setPanelData?.(entry);
+    _setPanelData?.(catalogEntry);
     _setPanelOpen?.(true);
     _setActiveLayers?.(new Set(['skin']));
 
-    Object.values(layerModels).forEach(m => { m.visible = false; });
-    if (skinMesh) skinMesh.visible = true;
-    deselectOrgan();
+    // Reset layers — hide all, show only skin
+    Object.values(spec.layerModels).forEach(m => { m.visible = false; });
+    if (spec.skinMesh) spec.skinMesh.visible = true;
 
     document.getElementById('sceneDim')?.classList.add('active');
     badge?.classList.add('visible');
@@ -621,12 +638,13 @@ const selectSpecimen = () => {
 };
 
 const deselectSpecimen = () => {
-    if (!isSelected) return;
-    isSelected = false;
+    if (!activeSpec) return;
 
-    Object.values(layerModels).forEach(m => { m.visible = false; });
-    if (skinMesh) skinMesh.visible = true;
+    Object.values(activeSpec.layerModels).forEach(m => { m.visible = false; });
+    if (activeSpec.skinMesh) activeSpec.skinMesh.visible = true;
     deselectOrgan();
+
+    activeSpec = null;
 
     _setPanelOpen?.(false);
     _setActiveLayers?.(new Set(['skin']));
@@ -645,19 +663,14 @@ let   ptrDown   = { x: 0, y: 0 };
 let   didDrag   = false;
 
 canvas.addEventListener('pointerdown', e => {
-    ptrDown.x = e.clientX;
-    ptrDown.y = e.clientY;
-    didDrag   = false;
+    ptrDown.x = e.clientX; ptrDown.y = e.clientY; didDrag = false;
 });
-
 canvas.addEventListener('pointermove', e => {
     const dx = e.clientX - ptrDown.x, dy = e.clientY - ptrDown.y;
     if (Math.sqrt(dx * dx + dy * dy) > 5) didDrag = true;
 });
-
 canvas.addEventListener('pointerup', e => {
     if (didDrag) return;
-
     mouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
     mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
@@ -665,9 +678,9 @@ canvas.addEventListener('pointerup', e => {
     if (document.getElementById('panelMount')?.contains(e.target)) return;
 
     // ── Organ picking ─────────────────────────────────────────────────────
-    if (isSelected) {
+    if (activeSpec) {
         const layerMeshes = [];
-        Object.entries(layerModels).forEach(([layerKey, layerObj]) => {
+        Object.entries(activeSpec.layerModels).forEach(([layerKey, layerObj]) => {
             if (!layerObj.visible) return;
             layerObj.traverse(child => {
                 if (child.isMesh) { child.userData.layerKey = layerKey; layerMeshes.push(child); }
@@ -680,19 +693,25 @@ canvas.addEventListener('pointerup', e => {
         }
     }
 
-    // ── Specimen picking ──────────────────────────────────────────────────
-    const target = skinModel ?? sharkRoot;
-    if (!target) return;
+    // ── Specimen picking — iterate all loaded specimens ────────────────────
+    for (const [, spec] of specimens) {
+        if (!spec.pivot) continue;
 
-    const pickTargets = clickProxy
-        ? [clickProxy]
-        : (() => { const m = []; target.traverse(c => { if (c.isMesh) m.push(c); }); return m; })();
+        const pickTargets = spec.clickProxy
+            ? [spec.clickProxy]
+            : (() => {
+                const m = [];
+                spec.skinMesh?.traverse(c => { if (c.isMesh) m.push(c); });
+                return m;
+            })();
 
-    if (raycaster.intersectObjects(pickTargets, false).length > 0) {
-        selectSpecimen();
-    } else {
-        deselectSpecimen();
+        if (raycaster.intersectObjects(pickTargets, false).length > 0) {
+            selectSpecimen(spec);
+            return;
+        }
     }
+
+    deselectSpecimen();
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -705,94 +724,25 @@ const setStatus = (msg, isError = false) => {
     el.style.display = msg ? 'block' : 'none';
 };
 
-// ─── Scene Reset Helper ───────────────────────────────────────────────────────
-
-const _clearScene = () => {
-    if (sharkRoot)  sharkRoot.visible = false;
-    if (skinModel) { scene.remove(skinModel); skinModel = null; }
-    skinMesh        = null;
-    Object.values(layerModels).forEach(m => scene.remove(m));
-    layerModels     = {};
-    currentFileName = null;
-    clickProxy      = null;
-    if (mixer) { mixer.stopAllAction(); mixer = null; }
-    deselectOrgan();
-};
-
 // ─── Model Loaders ────────────────────────────────────────────────────────────
+// Each loader creates or replaces the specimen entry in the Map.
+// No global state is touched — specimens are independent.
 
-export const loadOBJ = (objUrl, mtlUrl = null) => {
+export const loadGLTF = (url, swimOffset = 0) => {
+    const fileName = url.split('/').pop();
     setStatus('Loading model…');
-    _clearScene();
+    if (sharkRoot) sharkRoot.visible = false;
 
-    const doLoad = (materials) => {
-        const loader = new OBJLoader();
-        if (materials) loader.setMaterials(materials);
-        loader.load(
-            objUrl,
-            (obj) => {
-                obj.traverse(child => {
-                    if (!child.isMesh) return;
-                    child.castShadow    = true;
-                    child.receiveShadow = true;
-                    child.geometry.computeVertexNormals();
-                    if (!materials) child.material = new THREE.MeshStandardMaterial({
-                        color: 0x3f6a88, roughness: 0.55, metalness: 0.12, side: THREE.DoubleSide,
-                    });
-                });
-                computeCanonical(obj);
-                applyCanonical(obj);
-                skinModel       = obj;
-                currentFileName = objUrl.split('/').pop();
-                scene.add(skinModel);
-                setStatus('');
-            },
-            xhr => setStatus(`Loading… ${Math.round((xhr.loaded / xhr.total) * 100)}%`),
-            err => { console.error(err); setStatus('Failed to load model.', true); if (sharkRoot) sharkRoot.visible = true; },
-        );
-    };
+    // Remove existing specimen if reloading same file
+    if (specimens.has(fileName)) {
+        const old = specimens.get(fileName);
+        if (old.pivot) scene.remove(old.pivot);
+        if (old.mixer) old.mixer.stopAllAction();
+        if (activeSpec === old) { activeSpec = null; }
+    }
 
-    if (mtlUrl) new MTLLoader().load(mtlUrl, mats => { mats.preload(); doLoad(mats); });
-    else doLoad(null);
-};
-
-export const loadFBX = (url) => {
-    setStatus('Loading model…');
-    _clearScene();
-
-    new FBXLoader().load(
-        url,
-        (fbx) => {
-            fbx.traverse(child => {
-                if (child.isMesh)        { child.castShadow = true; child.receiveShadow = true; }
-                if (child.isSkinnedMesh) { child.frustumCulled = false; }
-            });
-            const pivot = new THREE.Group();
-            computeCanonical(fbx);
-            applyCanonical(fbx);
-            fbx.scale.setScalar(0.004);
-            pivot.add(fbx);
-            scene.add(pivot);
-            skinModel       = pivot;
-            currentFileName = url.split('/').pop();
-            if (fbx.animations.length > 0) {
-                mixer = new THREE.AnimationMixer(fbx);
-                const action = mixer.clipAction(fbx.animations[0]);
-                action.play();
-                action.timeScale = 3;
-            } else {
-                console.warn('[FBXLoader] No animation clips found in', url);
-            }
-            setStatus('');
-        },
-        xhr => setStatus(`Loading… ${Math.round((xhr.loaded / xhr.total) * 100)}%`),
-        err => { console.error(err); setStatus('Failed to load model.', true); if (sharkRoot) sharkRoot.visible = true; },
-    );
-};
-
-export const loadGLTF = (url) => {
-    setStatus('Loading model…');
-    _clearScene();
+    const spec = makeSpecimenState(fileName, swimOffset);
+    specimens.set(fileName, spec);
 
     new GLTFLoader().load(
         url,
@@ -800,52 +750,116 @@ export const loadGLTF = (url) => {
             const pivot = new THREE.Group();
 
             gltf.scene.traverse(child => {
-                if (child.isMesh && child.material?.map)
-                    console.log('texture colorSpace:', child.material.map.colorSpace);
                 if (child.isMesh)        { child.castShadow = true; child.receiveShadow = true; }
                 if (child.isSkinnedMesh) { child.frustumCulled = false; }
             });
 
-            computeCanonical(gltf.scene);
-            applyCanonical(gltf.scene);
+            computeCanonical(spec, gltf.scene);
+            applyCanonical(spec, gltf.scene);
             pivot.add(gltf.scene);
-            skinMesh = gltf.scene; // reference to skin geometry only — not the pivot
+            spec.skinMesh = gltf.scene;
 
-            // Plain sphere proxy — raycasts correctly regardless of skinning.
-            // Sized to wrap the canonical 3-unit model (radius 1.6 ≈ half-height).
             const proxy = new THREE.Mesh(
                 new THREE.SphereGeometry(1.6, 8, 8),
                 new THREE.MeshBasicMaterial({ visible: false }),
             );
             proxy.userData.isClickProxy = true;
             pivot.add(proxy);
-            clickProxy = proxy;
+            spec.clickProxy = proxy;
 
             scene.add(pivot);
-            skinModel       = pivot;
-            currentFileName = url.split('/').pop();
-            console.log('filename:', currentFileName);
+            spec.pivot = pivot;
 
             if (gltf.animations.length > 0) {
-                mixer = new THREE.AnimationMixer(gltf.scene);
-                console.log('Available animations:', gltf.animations.map(a => a.name));
-                const action = mixer.clipAction(gltf.animations[0]);
+                spec.mixer = new THREE.AnimationMixer(gltf.scene);
+                const action = spec.mixer.clipAction(gltf.animations[0]);
                 action.setLoop(THREE.LoopRepeat);
                 action.timeScale = 3;
                 action.play();
-                console.log(
-                    `[AnimationMixer] Playing "${gltf.animations[0].name}" — ` +
-                    `${Math.round(gltf.animations[0].duration * 24)} frames at 24 fps`
-                );
-            } else {
-                console.warn('[AnimationMixer] No animation clips found in', url);
+                console.log(`[AnimationMixer] "${gltf.animations[0].name}" — ${gltf.animations.length} clip(s)`);
             }
 
+            console.log(`[Atlas] GLTF loaded: ${fileName}`);
             setStatus('');
         },
         xhr => setStatus(`Loading… ${Math.round((xhr.loaded / xhr.total) * 100)}%`),
-        err => { console.error(err); setStatus('Failed to load model.', true); if (sharkRoot) sharkRoot.visible = true; },
+        err => { console.error(err); setStatus('Failed to load model.', true); },
     );
+};
+
+export const loadOBJ = (url, mtlUrl = null, swimOffset = 0) => {
+    const fileName = url.split('/').pop();
+    setStatus('Loading model…');
+    if (sharkRoot) sharkRoot.visible = false;
+ 
+    if (specimens.has(fileName)) {
+        const old = specimens.get(fileName);
+        if (old.pivot) scene.remove(old.pivot);
+        if (activeSpec === old) { activeSpec = null; }
+    }
+ 
+    const spec = makeSpecimenState(fileName, swimOffset);
+    specimens.set(fileName, spec);
+ 
+    const doLoad = (materials) => {
+        const loader = new OBJLoader();
+        if (materials) loader.setMaterials(materials);
+        loader.load(
+            url,
+            (obj) => {
+                obj.traverse(child => {
+                    if (!child.isMesh) return;
+                    child.castShadow    = true;
+                    child.receiveShadow = true;
+                    child.geometry.computeVertexNormals();
+ 
+                    if (!materials) {
+                        // No MTL — use a neutral visible material
+                        child.material = new THREE.MeshStandardMaterial({
+                            color:     0x7aabb8,
+                            roughness: 0.55,
+                            metalness: 0.08,
+                            side:      THREE.DoubleSide,
+                        });
+                    } else {
+                        const mats = Array.isArray(child.material)
+                            ? child.material
+                            : [child.material];
+                        mats.forEach(m => {
+                            m.side      = THREE.DoubleSide;
+                            // Cap metalness — high values need an envMap to look right
+                            if (m.metalness > 0.25) m.metalness = 0.15;
+                            // Ensure roughness is in a visible mid-range
+                            if (m.roughness < 0.3)  m.roughness = 0.45;
+                            // Clear any zero-opacity or near-black base colour
+                            if (m.color) {
+                                const { r, g, b } = m.color;
+                                if (r + g + b < 0.15) m.color.setHSL(0.55, 0.3, 0.45);
+                            }
+                            m.needsUpdate = true;
+                        });
+                    }
+                });
+ 
+                const pivot = new THREE.Group();
+                computeCanonical(spec, obj);
+                applyCanonical(spec, obj);
+                pivot.add(obj);
+                spec.skinMesh = obj;   // OBJ root IS the skin geometry
+ 
+                scene.add(pivot);
+                spec.pivot = pivot;
+ 
+                console.log(`[Atlas] OBJ loaded: ${fileName}`);
+                setStatus('');
+            },
+            xhr => setStatus(`Loading… ${Math.round((xhr.loaded / xhr.total) * 100)}%`),
+            err => { console.error(err); setStatus('Failed to load model.', true); },
+        );
+    };
+ 
+    if (mtlUrl) new MTLLoader().load(mtlUrl, mats => { mats.preload(); doLoad(mats); });
+    else doLoad(null);
 };
 
 // ── Resize ────────────────────────────────────────────────────────────────────
@@ -859,55 +873,63 @@ window.addEventListener('resize', () => {
 
 // ── Render Loop ───────────────────────────────────────────────────────────────
 
-const clock = new THREE.Timer();
-let swimT = 0;
+let _prevTime = performance.now();
+let _elapsed  = 0;
+let swimT     = 0;
 
-const _dir       = new THREE.Vector3();
-const _lerpVec   = new THREE.Vector3();
-const _frozenPos = new THREE.Vector3();
+const _lerpVec = new THREE.Vector3();
+const _dir     = new THREE.Vector3();
 
 const animate = () => {
     requestAnimationFrame(animate);
 
-    // ── clock.update() MUST be first ─────────────────────────────────────
-    // THREE.Timer stores time internally and only updates its registers when
-    // update() is explicitly called. getDelta() and getElapsed() return 0
-    // until the first update() — and return stale values if update() is
-    // skipped on subsequent frames. Always call it before anything else.
-    clock.update();
-    const delta   = clock.getDelta();
-    const elapsed = clock.getElapsed();
+    const now     = performance.now();
+    const delta   = Math.min((now - _prevTime) / 1000, 0.1);
+    _elapsed     += delta;
+    _prevTime     = now;
+    const elapsed = _elapsed;
 
-    if (mixer) mixer.update(delta);
+    swimT += delta * SWIM_SPEED;
 
-    if (!isSelected) {
-        swimT += delta * SWIM_SPEED;
-    } else {
-        _frozenPos.copy(swimPos(frozenSwimT));
-    }
+    // ── Per-specimen update ───────────────────────────────────────────────
+    specimens.forEach(spec => {
+        if (!spec.pivot) return;
 
-    const blendTarget = isSelected ? 1 : 0;
-    showcaseBlend += (blendTarget - showcaseBlend) * (delta * 2.2);
-    showcaseBlend  = THREE.MathUtils.clamp(showcaseBlend, 0, 1);
-    const eased    = easeInOut(showcaseBlend);
+        if (spec.mixer) spec.mixer.update(delta);
 
-    const refModel = skinModel ?? sharkRoot;
+        const isShowcased = (spec === activeSpec);
+        const t           = swimT + spec.swimOffset;
+        const sp          = swimPos(t);
 
-    if (refModel?.position) {
-        const sp = isSelected ? _frozenPos : swimPos(swimT);
-        _lerpVec.lerpVectors(sp, SHOWCASE_POS, eased);
-        refModel.position.copy(_lerpVec);
+        const blendTarget = isShowcased ? 1 : 0;
+        spec.showcaseBlend += (blendTarget - spec.showcaseBlend) * (delta * 2.2);
+        spec.showcaseBlend  = THREE.MathUtils.clamp(spec.showcaseBlend, 0, 1);
+        const eased         = easeInOut(spec.showcaseBlend);
 
-        if (!isSelected) {
-            const look = swimPos(swimT + 0.025);
+        const frozenPos = swimPos(spec.frozenSwimT);
+        const swimCur   = isShowcased ? frozenPos : sp;
+        _lerpVec.lerpVectors(swimCur, SHOWCASE_POS, eased);
+        spec.pivot.position.copy(_lerpVec);
+
+        if (!isShowcased) {
+            const look = swimPos(t + 0.025);
             _dir.copy(look).sub(sp).normalize();
+            // Rotation while swimming
+            spec.pivot.rotation.set(
+                Math.asin(THREE.MathUtils.clamp(-_dir.y, -1, 1)),
+                Math.atan2(_dir.x, _dir.z),
+                Math.sin(t * 1.8) * 0.09, 'YXZ',
+            );
         } else {
-            showcaseRotY += delta * 0.38;
-            refModel.rotation.x = THREE.MathUtils.lerp(refModel.rotation.x, 0, delta * 2);
-            refModel.rotation.y = showcaseRotY;
-            refModel.rotation.z = THREE.MathUtils.lerp(refModel.rotation.z, 0, delta * 2);
+            // Lerp to upright and hold still
+            spec.pivot.rotation.x = THREE.MathUtils.lerp(spec.pivot.rotation.x, 0, delta * 2);
+            spec.pivot.rotation.y = THREE.MathUtils.lerp(spec.pivot.rotation.y, 0, delta * 2);
+            spec.pivot.rotation.z = THREE.MathUtils.lerp(spec.pivot.rotation.z, 0, delta * 2);
         }
-    }
+    });
+
+    // ── Global effects ────────────────────────────────────────────────────
+    const isSelected = activeSpec !== null;
 
     if (sharkRoot?.visible && tailGroup && sharkPivot) {
         tailGroup.rotation.y  = Math.sin(elapsed * 2.7) * 0.44;
@@ -923,7 +945,9 @@ const animate = () => {
     specimenSpot.intensity = THREE.MathUtils.lerp(specimenSpot.intensity, isSelected ? 5.5 : 0, delta * 2.5);
     sideFill.intensity     = THREE.MathUtils.lerp(sideFill.intensity,     isSelected ? 3.0 : 0, delta * 2.5);
 
-    const fade = Math.max(0, (eased - 0.15) / 0.85);
+    // Ring opacity driven by the ACTIVE specimen's blend (or 0 if nothing selected)
+    const showcaseEased = activeSpec ? easeInOut(activeSpec.showcaseBlend) : 0;
+    const fade = Math.max(0, (showcaseEased - 0.15) / 0.85);
     ringMats[0].opacity = fade * (0.38 + Math.sin(elapsed * 1.3) * 0.06);
     ringMats[1].opacity = fade * (0.26 + Math.sin(elapsed * 2.1) * 0.10);
     ringMats[2].opacity = fade * 0.16;
@@ -958,28 +982,23 @@ const animate = () => {
 };
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
-// Fetch both JSON catalogs first so ORGAN_DATA and SPECIMEN_CATALOG are ready
-// before any model or layer loads. The await keeps everything sequential;
-// a fetch failure falls back to empty objects and logs a warning.
 
 const init = async () => {
     try {
-        [ORGAN_DATA, SPECIMEN_CATALOG] = await Promise.all([
-            fetch('/assets/data/sharkorgandata.json').then(r => { if (!r.ok) throw r; return r.json(); }),
-            fetch('/assets/data/specimencatalog.json').then(r => { if (!r.ok) throw r; return r.json(); }),
-        ]);
-        console.log(
-            `[Atlas] Data loaded — ${Object.keys(SPECIMEN_CATALOG).length} specimen(s), ` +
-            `${Object.keys(ORGAN_DATA).length} organ(s)`
-        );
+        SPECIMEN_CATALOG = await fetch('/assets/data/specimencatalog.json')
+            .then(r => { if (!r.ok) throw r; return r.json(); });
+        console.log(`[Atlas] Catalog loaded — ${Object.keys(SPECIMEN_CATALOG).length} specimen(s)`);
     } catch (err) {
-        console.warn('[Atlas] Could not load data JSON — falling back to empty catalogs.', err);
+        console.warn('[Atlas] Could not load catalog:', err);
     }
 
     const mountEl = document.getElementById('panelMount');
     if (mountEl) createRoot(mountEl).render(<App />);
 
-    loadGLTF('/assets/models/greatWhite/shark_skin.glb');
+    // swimOffset of Math.PI puts the manta on the opposite side of the figure-8
+    // loadGLTF('/assets/models/greatWhite/shark_skin.glb', 0);
+    loadOBJ('/assets/models/greatWhite/sharky.obj', '/assets/models/greatWhite/sharky.mtl', 0);
+    loadOBJ('/assets/models/manta/manta_skin.obj', '/assets/models/manta/manta_skin.mtl', Math.PI);
 
     animate();
 };

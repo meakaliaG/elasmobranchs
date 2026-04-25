@@ -310,3 +310,94 @@ canvas#modelCanvas {
 
     .depth-widget, .ctrl-hint { display: none; }
 }
+
+/* ─── Organ Label (CSS2DRenderer) ────────────────────────────────────────────
+   Injected into the DOM by CSS2DObject; positioned by CSS2DRenderer.
+   pointer-events: none is set on the renderer's root element, so these
+   labels never block clicks on the canvas.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.organ-label {
+    position:        relative;
+    background:      rgba(0, 8, 20, 0.88);
+    border:          1px solid rgba(0, 200, 255, 0.30);
+    border-left:     2px solid rgba(0, 200, 255, 0.70);
+    border-radius:   6px;
+    padding:         10px 14px 10px 12px;
+    max-width:       230px;
+    min-width:       140px;
+    backdrop-filter: blur(8px);
+    /* Offset so the label sits to the right of the clicked point */
+    transform:       translateX(14px) translateY(-50%);
+    /* Entrance animation */
+    animation:       ol-appear 0.18s ease-out both;
+}
+
+@keyframes ol-appear {
+    from { opacity: 0; transform: translateX(8px) translateY(-50%) scale(0.96); }
+    to   { opacity: 1; transform: translateX(14px) translateY(-50%) scale(1);   }
+}
+
+/* Thin connector line from label left edge toward the model */
+.organ-label::before {
+    content:          '';
+    position:         absolute;
+    left:             -18px;
+    top:              50%;
+    width:            16px;
+    height:           1px;
+    background:       rgba(0, 200, 255, 0.55);
+    transform:        translateY(-50%);
+}
+
+/* Small dot at the anchor point */
+.organ-label::after {
+    content:          '';
+    position:         absolute;
+    left:             -22px;
+    top:              50%;
+    width:            5px;
+    height:           5px;
+    border-radius:    50%;
+    background:       #00d4ff;
+    transform:        translateY(-50%);
+    box-shadow:       0 0 6px rgba(0, 212, 255, 0.8);
+}
+
+.ol-header {
+    margin-bottom: 6px;
+}
+
+.ol-name {
+    color:       #00d4ff;
+    font-size:   12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+}
+
+.ol-sub {
+    color:       rgba(100, 200, 230, 0.65);
+    font-size:   10px;
+    font-weight: 400;
+    margin-top:  2px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.ol-desc {
+    color:       rgba(180, 220, 235, 0.82);
+    font-size:   10.5px;
+    line-height: 1.55;
+}
+
+/* Mesh name debug line — dim, shown at bottom of label */
+.ol-mesh-id {
+    margin-top:  7px;
+    padding-top: 6px;
+    border-top:  1px solid rgba(0, 200, 255, 0.12);
+    color:       rgba(0, 180, 255, 0.35);
+    font-size:   9px;
+    font-family: monospace;
+    letter-spacing: 0.04em;
+}

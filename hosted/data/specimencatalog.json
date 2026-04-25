@@ -1,9 +1,10 @@
 {
   "_note": "Keys are the bare filename of the loaded GLB/OBJ (e.g. 'Sharkswim2.glb'). Add new specimens here; no changes to viewer.jsx needed.",
 
-  "shark_skin.glb": {
+  "sharky.obj": {
     "tag": "Apex Predator · Juvenile",
     "name": "Great White Shark",
+    "organDataUrl": "/assets/data/sharkorgandata.json",
     "latin": "Carcharodon carcharias",
     "stats": [
       { "label": "Est. Length",  "value": "1.5",            "unit": "m"  },
@@ -14,11 +15,30 @@
     "description": "Born fully formed and immediately independent, juvenile great whites hunt bony fish and rays in coastal shallows before transitioning to marine mammal prey as adults. Their dermal denticles — microscopic tooth-like scales — streamline flow and nearly silence passage through water.",
     "anatomy": "The cartilaginous skeleton is lighter and more flexible than bone, enabling the tight-radius turns juveniles rely on for reef hunting. Slow-twitch red muscle fibers sustain continuous cruising; dense fast-twitch white fibers power explosive acceleration.",
     "layers": {
-      "skin":        { "label": "Dermal · Skin",       "obj": "/assets/models/greatWhite/shark_skin.glb",        "mtl": null },
-      "muscle":      { "label": "Muscular · Tissue",   "obj": "/assets/models/greatWhite/shark_muscles.obj",     "mtl": "/assets/models/greatWhite/shark_muscles.mtl" },
+      "skin":        { "label": "Dermal · Skin",       "obj": "/assets/models/greatWhite/sharky.obj",        "mtl": "/assets/models/greatWhite/sharky.mtl" },
+      "muscle":      { "label": "Muscular · Tissue",   "obj": "/assets/models/greatWhite/shark_muscles.obj",     "mtl": null },
       "organs":      { "label": "Organs",              "obj": "/assets/models/greatWhite/shark_organs.obj",      "mtl": "/assets/models/greatWhite/shark_organs.mtl" },
       "circulatory": { "label": "Circulatory",         "obj": "/assets/models/greatWhite/shark_circulatory.obj", "mtl": "/assets/models/greatWhite/shark_circulatory.mtl" },
       "skeleton":    { "label": "Osseous · Cartilage", "obj": "/assets/models/greatWhite/shark_skeleton.obj",   "mtl":  "/assets/models/greatWhite/shark_skeleton.mtl" }
+    }
+  },
+   "manta_skin.obj": {
+    "tag": "Filter Feeder · Adult",
+    "name": "Manta Ray",
+    "organDataUrl": "/assets/data/mantaorgandata.json",
+    "latin": "Mobula",
+    "stats": [
+      { "label": "Est. Length",  "value": "5-9",            "unit": "m"  },
+      { "label": "Depth Range",  "value": "0 – 1250",        "unit": "m"  },
+      { "label": "Order",        "value": "Myliobatiformes",    "unit": ""   },
+      { "label": "Class",        "value": "Chondrichthyes", "unit": ""   }
+    ],
+    "description": "Rays in the order Chondrichthyes are essentially a compressed, flattened shark. The pectoral fins are fused to the head region into a disc and, in many species, the head is raised above the disc. Most species have a long, whip-like tail and many possess at least 1 venomous spine located along the tail. On the head region, large openings or spiracles lie behind the smaller eyes and 5 gill slits are located ventrally on each side.",
+    "anatomy": "The cartilaginous skeleton is lighter and more flexible than bone, enabling the tight-radius turns juveniles rely on for reef hunting. Slow-twitch red muscle fibers sustain continuous cruising; dense fast-twitch white fibers power explosive acceleration.",
+    "layers": {
+      "skin":        { "label": "Dermal · Skin",       "obj": "/assets/models/manta/manta_skin.obj",        "mtl": "/assets/models/manta/manta_skin.mtl" },
+      "organs":      { "label": "Organs",              "obj": "/assets/models/manta/manta_organs.obj",      "mtl": "/assets/models/manta/manta_organs.mtl" },
+      "skeleton":    { "label": "Osseous · Cartilage", "obj": "/assets/models/manta/manta_skeleton.obj",   "mtl":  "/assets/models/manta/manta_skeleton.mtl" }
     }
   }
 
