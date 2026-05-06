@@ -3,6 +3,11 @@
  *
  * Multi-specimen architecture: each loaded model owns its own state object
  * (pivot, skinMesh, clickProxy, layerModels, mixer, canonicalScale, …).
+ * Global state no longer exists for any of these — overwriting on second
+ * load was the root cause of all three reported bugs:
+ *   1. Second specimen's globals overwrote first → wrong catalog entry on click
+ *   2. canonicalScale overwritten → layer OBJs used wrong scale
+ *   3. skinMesh pointed to wrong model → skin toggle hid wrong specimen
  */
 
 const React      = require('react');
@@ -42,20 +47,36 @@ const StatCell = ({ label, value, unit }) => {
     );
 };
 
-const LayerButton = ({ layerKey, label, active, onClick }) => (
+const LayerButton = ({ layerKey, label, active, selected, onToggle, onSelect }) => (
     <button
-        className={`layer-btn${active ? ' active' : ''}`}
+        className={`layer-btn${active ? ' active' : ''}${selected ? ' selected' : ''}`}
         data-layer={layerKey}
-        onClick={() => onClick(layerKey)}
+        onClick={() => {
+            // Always toggle visibility on click.
+            // Selecting as slider target is handled in App after toggle-on.
+            onToggle(layerKey);
+        }}
+        onDoubleClick={(e) => {
+            // Double-click an active layer to set it as the slider target
+            // without toggling it off.
+            e.stopPropagation();
+            if (active) onSelect(layerKey);
+        }}
     >
         <span className='layer-dot' />
         <span className='layer-label'>{label}</span>
+        {selected && <span className='layer-selected-indicator' aria-hidden='true' />}
     </button>
 );
 
-const InfoPanel = ({ isOpen, data, activeLayers, onClose, onLayerToggle }) => {
+const InfoPanel = ({
+    isOpen, data, activeLayers, activeLayer, layerOpacity,
+    onClose, onLayerToggle, onLayerClick, onAllOff, onOpacityChange,
+}) => {
     if (!data) return null;
     const LAYER_KEYS = Object.keys(data.layers ?? {});
+    const anyActive  = activeLayers.size > 0;
+
     return (
         <aside className={`info-panel${isOpen ? ' open' : ''}`} id='infoPanel'>
             <div className='panel-header'>
@@ -73,8 +94,17 @@ const InfoPanel = ({ isOpen, data, activeLayers, onClose, onLayerToggle }) => {
                 <div className='section-label'>Overview</div>
                 <div className='description'>{data.description}</div>
                 <div className='layer-section'>
-                    <div className='section-label'>Anatomical Layers</div>
-                    <div className='layer-subtitle'>Toggle layers independently to examine tissue depths</div>
+                    <div className='layer-section-header'>
+                        <div className='section-label'>Anatomical Layers</div>
+                        <button
+                            className={`all-off-btn${!anyActive ? ' all-off-btn--dim' : ''}`}
+                            onClick={onAllOff}
+                            aria-label='Hide all layers'
+                        >
+                            All Off
+                        </button>
+                    </div>
+                    <div className='layer-subtitle'>Click to toggle · double-click an active layer to set opacity</div>
                     <div className='layer-buttons'>
                         {LAYER_KEYS.map(key => (
                             <LayerButton
@@ -82,10 +112,35 @@ const InfoPanel = ({ isOpen, data, activeLayers, onClose, onLayerToggle }) => {
                                 layerKey={key}
                                 label={data.layers?.[key]?.label ?? key}
                                 active={activeLayers.has(key)}
-                                onClick={onLayerToggle}
+                                selected={activeLayer === key}
+                                onToggle={onLayerToggle}
+                                onSelect={onLayerClick}
                             />
                         ))}
                     </div>
+                    {activeLayer && activeLayers.has(activeLayer) && (
+                        <div className='opacity-control'>
+                            <div className='opacity-label'>
+                                <span className='opacity-layer-name'>
+                                    {data.layers?.[activeLayer]?.label ?? activeLayer}
+                                </span>
+                                <span className='opacity-value'>
+                                    {Math.round(layerOpacity * 100)}%
+                                </span>
+                            </div>
+                            <input
+                                type='range'
+                                className='opacity-slider'
+                                min='0'
+                                max='1'
+                                step='0.01'
+                                value={layerOpacity}
+                                style={{ '--val': Math.round(layerOpacity * 100) }}
+                                onChange={onOpacityChange}
+                                aria-label='Layer opacity'
+                            />
+                        </div>
+                    )}
                 </div>
                 <div className='section-label'>Anatomy Note</div>
                 <div className='anatomy-note'>{data.anatomy}</div>
@@ -98,6 +153,8 @@ const App = () => {
     const [isOpen,       setIsOpen]       = useState(false);
     const [panelData,    setPanelData]    = useState(null);
     const [activeLayers, setActiveLayers] = useState(new Set(['skin']));
+    const [activeLayer,  setActiveLayer]  = useState(null);   // which layer the slider controls
+    const [layerOpacity, setLayerOpacity] = useState(1.0);
 
     useEffect(() => {
         _setPanelOpen    = setIsOpen;
@@ -106,23 +163,51 @@ const App = () => {
     }, []);
 
     useEffect(() => {
-        if (isOpen) setActiveLayers(new Set(['skin']));
+        if (isOpen) {
+            setActiveLayers(new Set(['skin']));
+            setActiveLayer('skin');
+            setLayerOpacity(1.0);
+        }
     }, [isOpen]);
 
     const handleLayerToggle = useCallback((layerKey) => {
         setActiveLayers(prev => {
             const next = new Set(prev);
             if (next.has(layerKey)) {
-                if (next.size === 1) return prev;
+                // Toggling off — hide layer, clear slider target if it was this one
                 next.delete(layerKey);
                 toggleLayer(layerKey, false);
+                setActiveLayer(al => al === layerKey ? null : al);
             } else {
+                // Toggling on — show layer and auto-select it as slider target
                 next.add(layerKey);
                 toggleLayer(layerKey, true);
+                setActiveLayer(layerKey);
+                setLayerOpacity(1.0);
+                setLayerOpacity3D(layerKey, 1.0);
             }
             return next;
         });
     }, []);
+
+    const handleAllOff = useCallback(() => {
+        setActiveLayers(prev => {
+            prev.forEach(key => toggleLayer(key, false));
+            return new Set();
+        });
+        setActiveLayer(null);
+    }, []);
+
+    const handleLayerClick = useCallback((layerKey) => {
+        // Single click on an already-active layer selects it as slider target
+        setActiveLayer(layerKey);
+    }, []);
+
+    const handleOpacityChange = useCallback((e) => {
+        const val = parseFloat(e.target.value);
+        setLayerOpacity(val);
+        if (activeLayer) setLayerOpacity3D(activeLayer, val);
+    }, [activeLayer]);
 
     const handleClose = useCallback(() => deselectSpecimen(), []);
 
@@ -131,8 +216,13 @@ const App = () => {
             isOpen={isOpen}
             data={panelData}
             activeLayers={activeLayers}
+            activeLayer={activeLayer}
+            layerOpacity={layerOpacity}
             onClose={handleClose}
             onLayerToggle={handleLayerToggle}
+            onLayerClick={handleLayerClick}
+            onAllOff={handleAllOff}
+            onOpacityChange={handleOpacityChange}
         />
     );
 };
@@ -183,16 +273,19 @@ sunLight.shadow.bias = -0.001;
 scene.add(sunLight);
 
 const specimenSpot = new THREE.SpotLight(0x99ddff, 5, 60, Math.PI * 0.14, 0.4, 1.0);
-specimenSpot.position.set(-4, 16, 6);
-specimenSpot.target.position.set(-4, 0, 0);
+specimenSpot.position.set(-1.5, 16, 6);
+specimenSpot.target.position.set(-1.5, 0, 2.0);
 scene.add(specimenSpot);
 scene.add(specimenSpot.target);
 
-const sideFill = new THREE.PointLight(0x224466, 3, 30);
+const sideFill = new THREE.PointLight(0x224466, 5, 30);
 sideFill.position.set(-10, 2, 4);
 scene.add(sideFill);
 
-const warmFill = new THREE.DirectionalLight(0xfff5e0, 1.5);
+// Neutral warm fill — gives OBJ skins with no envMap something to reflect.
+// The rest of the scene lights are heavily blue-tinted, which makes plain
+// MeshStandardMaterial surfaces nearly invisible at low metalness.
+const warmFill = new THREE.DirectionalLight(0xfff5e0, 2.5);
 warmFill.position.set(5, 4, 10);
 scene.add(warmFill);
 
@@ -254,7 +347,20 @@ scene.add(new THREE.Points(pGeo, new THREE.PointsMaterial({
 
 // ── Stage Rings ───────────────────────────────────────────────────────────────
 
-const SHOWCASE_POS = new THREE.Vector3(-4.0, 0.0, 4.0);
+// SHOWCASE_POS — where the model moves to on the swim path when selected.
+// Shifted left of centre to sit in the viewport area left of the info panel.
+const SHOWCASE_POS = new THREE.Vector3(-1.5, 0.0, 2.0);
+
+// Camera positions for the two states.
+// SHOWCASE: close enough so the 3-unit canonical model fills most of the
+// available screen (viewport width minus 420px panel).
+// FREE: original wide idle position.
+const CAMERA_FREE_POS      = new THREE.Vector3(0,    1.5, 14);
+const CAMERA_SHOWCASE_POS  = new THREE.Vector3(-1.5, 0.5,  7);
+
+// OrbitControls target for each state.
+const CONTROLS_FREE_TARGET     = new THREE.Vector3(0, 0, 0);
+const CONTROLS_SHOWCASE_TARGET = new THREE.Vector3(-1.5, 0, 2.0);
 
 const ringMats = [
     new THREE.MeshBasicMaterial({ color: 0x2a8ab8, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }),
@@ -338,7 +444,8 @@ const swimPos = (t) => {
 // ─── Per-Specimen State ───────────────────────────────────────────────────────
 //
 // Each loaded model owns its own state object. Nothing about one specimen
-// can be overwritten by loading another.
+// can be overwritten by loading another. The three bugs were all caused by
+// the previous single-global approach.
 //
 //   specimens   — Map<fileName, specimenState>
 //   activeSpec  — the currently showcased specimen, or null
@@ -419,13 +526,24 @@ const LAYER_MATS = {
 
 const showOrganLabel = (mesh, worldPoint) => {
     hideOrganLabel();
-    const data  = ORGAN_DATA[mesh.name];
-    const label = data?.label       ?? mesh.name ?? 'Unknown Structure';
+    // Normalize the mesh name before lookup so Blender instance suffixes
+    // (e.g. "sweep001", "sweep_002", "sweep.003") all resolve to the same
+    // organData.json key ("sweep"). The regex strips:
+    //   - a separator (_, ., space — optional)
+    //   - followed by 1–4 trailing digits
+    const normalizeMeshName = (name) =>
+        name.replace(/[_.\s]?\d{1,4}$/, '').toLowerCase().trim();
+
+    const rawName  = mesh.name || '';
+    const normName = normalizeMeshName(rawName);
+    // Try exact match first, then fall back to normalised name
+    const data  = ORGAN_DATA[rawName] ?? ORGAN_DATA[normName];
+    const label = data?.label       ?? rawName ?? 'Unknown Structure';
     const sub   = data?.sublabel    ?? mesh.userData.layerKey ?? '';
     const desc  = data?.description ?? 'No anatomical data available for this structure.';
 
     const wrapper = document.createElement('div');
-    wrapper.style.cssText = 'position:absolute;pointer-events:none;';
+    wrapper.className = 'organ-label-wrapper';
 
     const div = document.createElement('div');
     div.className = 'organ-label';
@@ -435,7 +553,7 @@ const showOrganLabel = (mesh, worldPoint) => {
             ${sub ? `<div class="ol-sub">${sub}</div>` : ''}
         </div>
         <div class="ol-desc">${desc}</div>
-        <div class="ol-mesh-id">${mesh.name || '—'}</div>
+        <div class="ol-mesh-id">${rawName}${normName !== rawName ? ` → ${normName}` : ''}</div>
     `;
     wrapper.appendChild(div);
 
@@ -473,7 +591,32 @@ const deselectOrgan = () => {
     hideOrganLabel();
 };
 
+// ─── Layer Opacity ────────────────────────────────────────────────────────────
+// Called from React when the opacity slider changes.
+// Works on both the skin (skinMesh) and any loaded layer OBJ/GLB.
+
+const setLayerOpacity3D = (layerKey, opacity) => {
+    if (!activeSpec) return;
+
+    const target = layerKey === 'skin'
+        ? activeSpec.skinMesh
+        : activeSpec.layerModels[layerKey];
+
+    if (!target) return;
+
+    target.traverse(child => {
+        if (!child.isMesh) return;
+        const mats = Array.isArray(child.material) ? child.material : [child.material];
+        mats.forEach(m => {
+            m.transparent = opacity < 1.0;
+            m.opacity     = opacity;
+            m.needsUpdate = true;
+        });
+    });
+};
+
 // ─── Layer Toggle ─────────────────────────────────────────────────────────────
+// All operations go through activeSpec — never touching another specimen.
 
 const toggleLayer = (layerKey, visible) => {
     if (!activeSpec) return;
@@ -597,6 +740,7 @@ const selectSpecimen = async (spec) => {
 
     activeSpec           = spec;
     spec.frozenSwimT     = swimT + spec.swimOffset;
+    cameraTransitioning  = true;  // kick off the one-shot camera approach
 
     // Load this specimen's organ data
     const entry = SPECIMEN_CATALOG[spec.fileName];
@@ -650,6 +794,7 @@ const deselectSpecimen = () => {
     deselectOrgan();
 
     activeSpec = null;
+    cameraTransitioning = true;
 
     _setPanelOpen?.(false);
     _setActiveLayers?.(new Set(['skin']));
@@ -702,6 +847,8 @@ canvas.addEventListener('pointerup', e => {
     for (const [, spec] of specimens) {
         if (!spec.pivot) continue;
 
+        // Use clickProxy for GLTF (SkinnedMesh bounding sphere unreliable),
+        // or traverse skinMesh directly for OBJ models.
         const pickTargets = spec.clickProxy
             ? [spec.clickProxy]
             : (() => {
@@ -792,20 +939,28 @@ export const loadGLTF = (url, swimOffset = 0) => {
     );
 };
 
-export const loadOBJ = (url, mtlUrl = null, swimOffset = 0) => {
+export const loadOBJ = (url, mtlUrl = null, swimOffset = 0, orientOffset = 0) => {
+    // orientOffset — Y-axis rotation (radians) applied to an inner group so
+    // the model's head points toward Three.js -Z (the pivot's forward).
+    // Common values:
+    //   0          → head already faces -Z (no correction needed)
+    //   Math.PI/2  → head faces +X in Blender export
+    //  -Math.PI/2  → head faces -X in Blender export
+    //   Math.PI    → head faces +Z (model is backwards)
+    // Try Math.PI/2 first, then flip sign if the tail leads instead.
     const fileName = url.split('/').pop();
     setStatus('Loading model…');
     if (sharkRoot) sharkRoot.visible = false;
- 
+
     if (specimens.has(fileName)) {
         const old = specimens.get(fileName);
         if (old.pivot) scene.remove(old.pivot);
         if (activeSpec === old) { activeSpec = null; }
     }
- 
+
     const spec = makeSpecimenState(fileName, swimOffset);
     specimens.set(fileName, spec);
- 
+
     const doLoad = (materials) => {
         const loader = new OBJLoader();
         if (materials) loader.setMaterials(materials);
@@ -817,7 +972,7 @@ export const loadOBJ = (url, mtlUrl = null, swimOffset = 0) => {
                     child.castShadow    = true;
                     child.receiveShadow = true;
                     child.geometry.computeVertexNormals();
- 
+
                     if (!materials) {
                         // No MTL — use a neutral visible material
                         child.material = new THREE.MeshStandardMaterial({
@@ -827,6 +982,9 @@ export const loadOBJ = (url, mtlUrl = null, swimOffset = 0) => {
                             side:      THREE.DoubleSide,
                         });
                     } else {
+                        // MTL loaded — normalize it so it's visible under scene lighting.
+                        // Blender OBJ exports often set high metalness (Pm) or colours
+                        // that nearly disappear under the heavily blue-tinted scene lights.
                         const mats = Array.isArray(child.material)
                             ? child.material
                             : [child.material];
@@ -845,16 +1003,26 @@ export const loadOBJ = (url, mtlUrl = null, swimOffset = 0) => {
                         });
                     }
                 });
- 
+
                 const pivot = new THREE.Group();
+
+                // Orient correction — rotates the model so its head faces -Z,
+                // which is the direction the pivot points along the swim path.
+                // The pivot itself is rotated by the animate loop; this inner
+                // group is fixed and only corrects the model's own axis.
+                const orientGroup = new THREE.Group();
+                orientGroup.rotation.y = orientOffset;
+
                 computeCanonical(spec, obj);
                 applyCanonical(spec, obj);
-                pivot.add(obj);
-                spec.skinMesh = obj;   // OBJ root IS the skin geometry
- 
+                orientGroup.add(obj);
+                pivot.add(orientGroup);
+
+                spec.skinMesh = obj;   // points to actual geometry for visibility toggling
+
                 scene.add(pivot);
                 spec.pivot = pivot;
- 
+
                 console.log(`[Atlas] OBJ loaded: ${fileName}`);
                 setStatus('');
             },
@@ -862,7 +1030,7 @@ export const loadOBJ = (url, mtlUrl = null, swimOffset = 0) => {
             err => { console.error(err); setStatus('Failed to load model.', true); },
         );
     };
- 
+
     if (mtlUrl) new MTLLoader().load(mtlUrl, mats => { mats.preload(); doLoad(mats); });
     else doLoad(null);
 };
@@ -881,6 +1049,11 @@ window.addEventListener('resize', () => {
 let _prevTime = performance.now();
 let _elapsed  = 0;
 let swimT     = 0;
+
+// When a specimen is selected the camera lerps to CAMERA_SHOWCASE_POS once,
+// then stops so OrbitControls can be used freely for anatomy inspection.
+// cameraTransitioning is set true on selection and cleared when close enough.
+let cameraTransitioning = false;
 
 const _lerpVec = new THREE.Vector3();
 const _dir     = new THREE.Vector3();
@@ -919,11 +1092,14 @@ const animate = () => {
         if (!isShowcased) {
             const look = swimPos(t + 0.025);
             _dir.copy(look).sub(sp).normalize();
-            // Rotation while swimming
+            // Rotate pivot to face the direction of travel.
+            // The orient group inside each specimen corrects the model's
+            // own head axis so this always points the head forward.
             spec.pivot.rotation.set(
                 Math.asin(THREE.MathUtils.clamp(-_dir.y, -1, 1)),
                 Math.atan2(_dir.x, _dir.z),
-                Math.sin(t * 1.8) * 0.09, 'YXZ',
+                Math.sin(t * 1.8) * 0.09,
+                'YXZ',
             );
         } else {
             // Lerp to upright and hold still
@@ -978,8 +1154,33 @@ const animate = () => {
     }
     pGeo.attributes.position.needsUpdate = true;
 
-    camera.position.x += Math.sin(elapsed * 0.12) * 0.0012;
-    camera.position.y += Math.sin(elapsed * 0.17) * 0.0008;
+    // ── Camera ────────────────────────────────────────────────────────────
+    // One-shot approach: lerp camera and controls.target toward the target
+    // positions only while cameraTransitioning is true. Once the camera is
+    // within 0.05 units of its target we stop and leave OrbitControls fully
+    // in control — the user can then drag/zoom freely around the specimen.
+    if (cameraTransitioning) {
+        const camTarget     = isSelected ? CAMERA_SHOWCASE_POS : CAMERA_FREE_POS;
+        const controlTarget = isSelected ? CONTROLS_SHOWCASE_TARGET : CONTROLS_FREE_TARGET;
+
+        camera.position.lerp(camTarget, delta * 2.5);
+        controls.target.lerp(controlTarget, delta * 3.0);
+
+        // Stop lerping once close enough — hand full control back to OrbitControls
+        if (camera.position.distanceTo(camTarget) < 0.05) {
+            camera.position.copy(camTarget);
+            controls.target.copy(controlTarget);
+            cameraTransitioning = false;
+        }
+
+        // Adjust orbit distance limits to match the state
+        controls.minDistance = isSelected ? 2  : 3;
+        controls.maxDistance = isSelected ? 12 : 35;
+    } else if (!isSelected) {
+        // Gentle idle drift only when swimming freely and not transitioning
+        camera.position.x += Math.sin(elapsed * 0.12) * 0.0012;
+        camera.position.y += Math.sin(elapsed * 0.17) * 0.0008;
+    }
 
     controls.update();
     renderer.render(scene, camera);
@@ -990,7 +1191,7 @@ const animate = () => {
 
 const init = async () => {
     try {
-        SPECIMEN_CATALOG = await fetch('/assets/data/specimencatalog.json')
+        SPECIMEN_CATALOG = await fetch('/assets/data/specimenCatalog.json')
             .then(r => { if (!r.ok) throw r; return r.json(); });
         console.log(`[Atlas] Catalog loaded — ${Object.keys(SPECIMEN_CATALOG).length} specimen(s)`);
     } catch (err) {
@@ -1000,8 +1201,10 @@ const init = async () => {
     const mountEl = document.getElementById('panelMount');
     if (mountEl) createRoot(mountEl).render(<App />);
 
-    // swimOffset of Math.PI puts the manta on the opposite side of the figure-8
-    // loadGLTF('/assets/models/greatWhite/shark_skin.glb', 0);
+    // swimOffset staggers positions on the figure-8.
+    // orientOffset corrects each model's head axis to face -Z (swim direction).
+    // Adjust orientOffset per model until the head leads — try Math.PI/2 first,
+    // flip sign if the tail leads, use Math.PI if the model is fully backwards.
     loadOBJ('/assets/models/greatWhite/sharky.obj', '/assets/models/greatWhite/sharky.mtl', 0);
     loadOBJ('/assets/models/manta/manta.obj', '/assets/models/manta/manta.mtl', Math.PI);
 

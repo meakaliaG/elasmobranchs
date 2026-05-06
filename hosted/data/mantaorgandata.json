@@ -1,205 +1,74 @@
 {
-  "_note": "Keys must match Blender mesh names exactly. Toggle a layer on and check the browser console for '[layerKey] mesh names → [...]' to verify.",
+  "_note": "Keys are lowercase to match the normalized fallback (mesh name lowercased + trailing digits stripped). Families like Pelvic_Fin1-16 normalize to 'pelvic_fin'; Cephalic_25-47 normalize to 'cephalic'; Pectoral_1-944 normalize to 'pectoral'. Exact-case keys are also duplicated where needed.",
 
-  "Brain": {
-    "label": "Brain",
-    "sublabel": "Organs · Neural",
-    "description": "Manta rays have the largest brain-to-body weight ratio of any living fish. They have high levels of intelligence and long-term memory, and are able to map their environment using sight and smell."
-  },
-  "Heart": {
-    "label": "Heart",
-    "sublabel": "Organs · Circulatory",
-    "description": "A two-chambered heart with one atrium and one ventricle — a single-circuit system, unlike humans who have separate systemic and pulmonary circuits."
-  },
-  "Esophagus": {
-    "label": "Esophagus",
-    "sublabel": "Organs · Digestive",
-    "description": "The manta's esophagus is relatively small despite their very large open mouths. It receives plankton that have passed through the gill rakers and directs them to the stomach."
-  },
-  "Stomach": {
-    "label": "Cardiac Stomach",
-    "sublabel": "Organs · Digestive",
-    "description": "The upper portion of the stomach helps store food and initiate digestion through muscular churning. The lower portion of the stomach connects to the intestine and is specialized for chemical digestion."
-  },
-  "Duodenum": {
-    "label": "Duodenum",
-    "sublabel": "Organs · Digestive",
-    "description": "This short segment of small intestine connects the pyloric stomach to the spiral valve."
-  },
-  "Spiral_valve": {
-    "label": "Spiral Valve",
-    "sublabel": "Organs · Digestive",
-    "description": "This portion of the intestine features internal coils that increase surface area for digestion. Mantas are capable of intestinal inversion — pushing the spiral valve out through the cloaca to remove built-up waste and parasites for cleaning."
-  },
-  "Liver": {
-    "label": "Liver",
-    "sublabel": "Organs · Metabolic",
-    "description": "The large four-lobed liver is filled with oil and nutrients, helping the ray maintain buoyancy in the water."
-  },
-  "Gallbladder": {
-    "label": "Gallbladder",
-    "sublabel": "Organs · Digestive",
-    "description": "Stores bile to aid in the digestion of fats."
-  },
-  "Spleen": {
-    "label": "Spleen",
-    "sublabel": "Organs · Immune / Haematopoietic",
-    "description": "A primary component of the immune system and the site of red blood cell production, since manta rays lack bone marrow."
-  },
-  "Kidney_l": {
-    "label": "Kidney",
-    "sublabel": "Organs · Osmoregulation",
-    "description": "Mantas do not expel urea. Their kidneys are designed to reabsorb and manage urea, and also function in osmoregulation and hematopoiesis."
-  },
-  "Kidney_r": {
-    "label": "Kidney",
-    "sublabel": "Organs · Osmoregulation",
-    "description": "Mantas do not expel urea. Their kidneys are designed to reabsorb and manage urea, and also function in osmoregulation and hematopoiesis."
-  },
-  "Uterus": {
-    "label": "Uterus",
-    "sublabel": "Organs · Reproductive",
-    "description": "Female mantas have two uteri — an adaptation that helps increase reproductive success and manage space and resources during the 12–13 month gestation process."
-  },
-  "Ovaries": {
-    "label": "Ovaries",
-    "sublabel": "Organs · Reproductive",
-    "description": "Though mantas have uteri and ovaries on both sides, the left ovary is usually the functional organ for egg production."
-  },
+  "Brain":              { "label": "Brain",             "sublabel": "Organs · Neural",                  "description": "Manta rays have the largest brain-to-body weight ratio of any living fish. They have high levels of intelligence and long-term memory, and are able to map their environment using sight and smell." },
+  "brain":              { "label": "Brain",             "sublabel": "Organs · Neural",                  "description": "Manta rays have the largest brain-to-body weight ratio of any living fish. They have high levels of intelligence and long-term memory, and are able to map their environment using sight and smell." },
 
-  "Cephalic_fins": {
-    "label": "Cephalic Fins",
-    "sublabel": "Skeleton · Feeding",
-    "description": "These horn-shaped appendages assist in feeding by unfurling to funnel water and plankton into the mouth. They evolved as extensions of the pectoral fins."
-  },
-  "Skull": {
-    "label": "Skull",
-    "sublabel": "Skeleton · Chondrocranium",
-    "description": "The lightweight cartilaginous skull reduces weight while still protecting the brain and sensory structures."
-  },
-  "Gill_rake1": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake2": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake3": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake4": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake5": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake6": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake7": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake8": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake9": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake0": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-  "Gill_rake_r1": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake_r2": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake_r3": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake_r4": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake_r5": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake_r6": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake_r7": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake_r8": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake_r9": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-    "Gill_rake_r0": {
-    "label": "Gill Rakers",
-    "sublabel": "Skeleton · Respiratory / Feeding",
-    "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments."
-  },
-  "Pectoral_fin_left": {
-    "label": "Pectoral Fins",
-    "sublabel": "Skeleton · Locomotion",
-    "description": "Large triangular wings that provide lift and propulsion for movement and balance."
-  },
-  "Pectoral_fin_right": {
-    "label": "Pectoral Fins",
-    "sublabel": "Skeleton · Locomotion",
-    "description": "Large triangular wings that provide lift and propulsion for movement and balance."
-  },
-  "pelvic_fins": {
-    "label": "Pelvic Fins",
-    "sublabel": "Skeleton · Stabilisation",
-    "description": "Assist in stability, and in males support the claspers for reproduction."
-  },
-  "Dorsal_fin": {
-    "label": "Dorsal Fin",
-    "sublabel": "Skeleton · Stabilisation",
-    "description": "The small dorsal fin assists in balance in some manta species, but is absent in others."
-  },
-  "tail": {
-    "label": "Tail",
-    "sublabel": "Skeleton · Sensory / Steering",
-    "description": "The manta's tail lacks venomous barbs or stingers and instead functions as a rudder for steering and a sensory antenna to detect vibrations."
-  }
+  "Heart":              { "label": "Heart",             "sublabel": "Organs · Circulatory",             "description": "A two-chambered heart with one atrium and one ventricle — a single-circuit system, unlike humans who have separate systemic and pulmonary circuits." },
+  "heart":              { "label": "Heart",             "sublabel": "Organs · Circulatory",             "description": "A two-chambered heart with one atrium and one ventricle — a single-circuit system, unlike humans who have separate systemic and pulmonary circuits." },
+
+  "SharkOrganadjust2:Heart": { "label": "Heart",        "sublabel": "Organs · Circulatory",             "description": "A two-chambered heart with one atrium and one ventricle — a single-circuit system, unlike humans who have separate systemic and pulmonary circuits." },
+  "sharkorganadjust2:heart": { "label": "Heart",        "sublabel": "Organs · Circulatory",             "description": "A two-chambered heart with one atrium and one ventricle — a single-circuit system, unlike humans who have separate systemic and pulmonary circuits." },
+
+  "Esophagus":          { "label": "Esophagus",         "sublabel": "Organs · Digestive",               "description": "The manta's esophagus is relatively small despite their very large open mouths. It receives plankton that have passed through the gill rakers and directs them to the stomach." },
+  "esophagus":          { "label": "Esophagus",         "sublabel": "Organs · Digestive",               "description": "The manta's esophagus is relatively small despite their very large open mouths. It receives plankton that have passed through the gill rakers and directs them to the stomach." },
+
+  "Stomach":            { "label": "Cardiac Stomach",   "sublabel": "Organs · Digestive",               "description": "The upper portion of the stomach helps store food and initiate digestion through muscular churning." },
+  "stomach":            { "label": "Cardiac Stomach",   "sublabel": "Organs · Digestive",               "description": "The upper portion of the stomach helps store food and initiate digestion through muscular churning." },
+
+  "Duodenum":           { "label": "Duodenum",          "sublabel": "Organs · Digestive",               "description": "This short segment of small intestine connects the pyloric stomach to the spiral valve." },
+  "duodenum":           { "label": "Duodenum",          "sublabel": "Organs · Digestive",               "description": "This short segment of small intestine connects the pyloric stomach to the spiral valve." },
+
+  "Intestine":          { "label": "Spiral Valve / Intestine", "sublabel": "Organs · Digestive",         "description": "This portion of the intestine features internal coils that increase surface area for digestion. Mantas are capable of intestinal inversion — pushing the spiral valve out through the cloaca to remove built-up waste and parasites for cleaning." },
+  "intestine":          { "label": "Spiral Valve / Intestine", "sublabel": "Organs · Digestive",         "description": "This portion of the intestine features internal coils that increase surface area for digestion. Mantas are capable of intestinal inversion — pushing the spiral valve out through the cloaca to remove built-up waste and parasites for cleaning." },
+
+  "Liver":              { "label": "Liver",             "sublabel": "Organs · Metabolic",               "description": "The large four-lobed liver is filled with oil and nutrients, helping the ray maintain buoyancy in the water." },
+  "liver":              { "label": "Liver",             "sublabel": "Organs · Metabolic",               "description": "The large four-lobed liver is filled with oil and nutrients, helping the ray maintain buoyancy in the water." },
+
+  "Gallbladder":        { "label": "Gallbladder",       "sublabel": "Organs · Digestive",               "description": "Stores bile to aid in the digestion of fats." },
+  "gallbladder":        { "label": "Gallbladder",       "sublabel": "Organs · Digestive",               "description": "Stores bile to aid in the digestion of fats." },
+
+  "Spleen":             { "label": "Spleen",            "sublabel": "Organs · Immune / Haematopoietic", "description": "A primary component of the immune system and the site of red blood cell production, since manta rays lack bone marrow." },
+  "spleen":             { "label": "Spleen",            "sublabel": "Organs · Immune / Haematopoietic", "description": "A primary component of the immune system and the site of red blood cell production, since manta rays lack bone marrow." },
+
+  "Kidney_r":           { "label": "Kidneys",           "sublabel": "Organs · Osmoregulation",          "description": "Mantas do not expel urea. Their kidneys are designed to reabsorb and manage urea, and also function in osmoregulation and hematopoiesis." },
+  "Kidney_l":           { "label": "Kidneys",           "sublabel": "Organs · Osmoregulation",          "description": "Mantas do not expel urea. Their kidneys are designed to reabsorb and manage urea, and also function in osmoregulation and hematopoiesis." },
+  "kidney_r":           { "label": "Kidneys",           "sublabel": "Organs · Osmoregulation",          "description": "Mantas do not expel urea. Their kidneys are designed to reabsorb and manage urea, and also function in osmoregulation and hematopoiesis." },
+  "kidney_l":           { "label": "Kidneys",           "sublabel": "Organs · Osmoregulation",          "description": "Mantas do not expel urea. Their kidneys are designed to reabsorb and manage urea, and also function in osmoregulation and hematopoiesis." },
+
+  "Uterus":             { "label": "Uterus",            "sublabel": "Organs · Reproductive",            "description": "Female mantas have two uteri — an adaptation that helps increase reproductive success and manage space and resources during the 12–13 month gestation process." },
+  "uterus":             { "label": "Uterus",            "sublabel": "Organs · Reproductive",            "description": "Female mantas have two uteri — an adaptation that helps increase reproductive success and manage space and resources during the 12–13 month gestation process." },
+
+  "ovaries":            { "label": "Ovaries",           "sublabel": "Organs · Reproductive",            "description": "Though mantas have uteri and ovaries on both sides, the left ovary is usually the functional organ for egg production." },
+
+  "Rectal_gland":       { "label": "Rectal Gland",      "sublabel": "Organs · Osmoregulation",          "description": "Helps maintain salt and water balance by excreting excess salt through the cloaca." },
+  "rectal_gland":       { "label": "Rectal Gland",      "sublabel": "Organs · Osmoregulation",          "description": "Helps maintain salt and water balance by excreting excess salt through the cloaca." },
+
+  "cephalic_fin":       { "label": "Cephalic Fins",     "sublabel": "Skeleton · Feeding",               "description": "These horn-shaped appendages assist in feeding by unfurling to funnel water and plankton into the mouth. They evolved as extensions of the pectoral fins." },
+  "cephalic":           { "label": "Cephalic Fins",     "sublabel": "Skeleton · Feeding",               "description": "These horn-shaped appendages assist in feeding by unfurling to funnel water and plankton into the mouth. They evolved as extensions of the pectoral fins." },
+
+  "Skull_under":        { "label": "Skull",             "sublabel": "Skeleton · Chondrocranium",        "description": "The lightweight cartilaginous skull reduces weight while still protecting the brain and sensory structures." },
+  "skull_under":        { "label": "Skull",             "sublabel": "Skeleton · Chondrocranium",        "description": "The lightweight cartilaginous skull reduces weight while still protecting the brain and sensory structures." },
+  "Skull_pelvis":       { "label": "Skull–Pelvic Connection", "sublabel": "Skeleton · Axial",           "description": "Cartilaginous structure linking the cranial and pelvic regions, contributing to the overall rigidity of the manta's flattened body plan." },
+  "skull_pelvis":       { "label": "Skull–Pelvic Connection", "sublabel": "Skeleton · Axial",           "description": "Cartilaginous structure linking the cranial and pelvic regions, contributing to the overall rigidity of the manta's flattened body plan." },
+
+  "gill_rake":          { "label": "Gill Rakers",       "sublabel": "Skeleton · Respiratory / Feeding", "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments." },
+  "gill_rake_r":        { "label": "Gill Rakers",       "sublabel": "Skeleton · Respiratory / Feeding", "description": "Cartilaginous comb-like structures that trap food particles and direct them toward the esophagus without damaging the gill filaments." },
+
+  "pectoral":           { "label": "Pectoral Fins",     "sublabel": "Skeleton · Locomotion",            "description": "Large triangular wings that provide lift and propulsion for movement and balance." },
+
+  "pelvic_fin":         { "label": "Pelvic Fins",       "sublabel": "Skeleton · Stabilisation",         "description": "Assist in stability, and in males support the claspers for reproduction." },
+  "pelvic":             { "label": "Pelvic Fins",       "sublabel": "Skeleton · Stabilisation",         "description": "Assist in stability, and in males support the claspers for reproduction." },
+  "Pelvis_under":       { "label": "Pelvic Girdle",     "sublabel": "Skeleton · Appendicular",          "description": "Supports the pelvic fins and, in males, the claspers used in reproduction." },
+  "pelvis_under":       { "label": "Pelvic Girdle",     "sublabel": "Skeleton · Appendicular",          "description": "Supports the pelvic fins and, in males, the claspers used in reproduction." },
+
+  "Dorsal_Fin":         { "label": "Dorsal Fin",        "sublabel": "Skeleton · Stabilisation",         "description": "The small dorsal fin assists in balance in some manta species, but is absent in others." },
+  "dorsal_fin":         { "label": "Dorsal Fin",        "sublabel": "Skeleton · Stabilisation",         "description": "The small dorsal fin assists in balance in some manta species, but is absent in others." },
+
+  "Tail":               { "label": "Tail",              "sublabel": "Skeleton · Sensory / Steering",    "description": "The manta's tail lacks venomous barbs or stingers and instead functions as a rudder for steering and a sensory antenna to detect vibrations." },
+  "tail":               { "label": "Tail",              "sublabel": "Skeleton · Sensory / Steering",    "description": "The manta's tail lacks venomous barbs or stingers and instead functions as a rudder for steering and a sensory antenna to detect vibrations." },
+  "sweep":              { "label": "Tail Cartilages",   "sublabel": "Skeleton · Tail",                  "description": "Cartilaginous rays that form the internal structure of the manta's elongated tail, providing flexibility for steering and sensory function." },
+
+  "Spine":              { "label": "Vertebral Column",  "sublabel": "Skeleton · Axial",                 "description": "The cartilaginous vertebral column runs the length of the body, providing structural support and a conduit for the spinal cord." },
+  "spine":              { "label": "Vertebral Column",  "sublabel": "Skeleton · Axial",                 "description": "The cartilaginous vertebral column runs the length of the body, providing structural support and a conduit for the spinal cord." }
 }

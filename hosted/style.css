@@ -265,6 +265,42 @@ canvas#modelCanvas {
     border-top: 1px solid rgba(126,200,227,0.1);
     padding-top: 22px; margin-bottom: 28px;
 }
+
+.layer-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.layer-section-header .section-label {
+    margin-bottom: 0; /* override — header row handles spacing */
+}
+
+/* All Off button */
+.all-off-btn {
+    font-family:    var(--font-mono);
+    font-size:      8px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color:          rgba(200, 80, 80, 0.75);
+    background:     transparent;
+    border:         1px solid rgba(200, 80, 80, 0.3);
+    border-radius:  2px;
+    padding:        4px 9px;
+    cursor:         pointer;
+    transition:     color 0.2s, border-color 0.2s, background 0.2s;
+}
+.all-off-btn:hover {
+    color:            #e06060;
+    border-color:     rgba(200, 80, 80, 0.7);
+    background:       rgba(200, 80, 80, 0.08);
+}
+/* Dim when all layers are already off */
+.all-off-btn--dim {
+    color:        rgba(200, 80, 80, 0.35);
+    border-color: rgba(200, 80, 80, 0.15);
+    pointer-events: none;
+}
 .layer-subtitle {
     font-family: var(--font-mono); font-size: 9px;
     letter-spacing: 0.15em; color: var(--text-muted);
@@ -311,6 +347,105 @@ canvas#modelCanvas {
 .layer-btn[data-layer="skeleton"] .layer-dot { background: rgba(212,201,168,0.4); }
 .layer-btn[data-layer="skeleton"].active     { border-color: rgba(212,201,168,0.75); color: #e0d4b4; background: rgba(212,201,168,0.09); }
 .layer-btn[data-layer="skeleton"].active .layer-dot { background: #e0d4b4; box-shadow: 0 0 6px rgba(224,212,180,0.6); }
+
+/* Selected state — bright outline shows which layer the slider controls */
+.layer-btn.selected {
+    outline: 1px solid rgba(0, 212, 255, 0.6);
+    outline-offset: 2px;
+}
+
+/* Layer selected indicator dot (right-aligned tick) */
+.layer-selected-indicator {
+    margin-left: auto;
+    width:  5px;
+    height: 5px;
+    border-radius: 50%;
+    background:    #00d4ff;
+    box-shadow:    0 0 5px rgba(0, 212, 255, 0.8);
+    flex-shrink:   0;
+}
+
+/* ── Opacity control ─────────────────────────────────────────────────────── */
+.opacity-control {
+    margin-top:    40px;      
+    padding:       12px 14px;
+    border:        1px solid rgba(0, 200, 255, 0.15);
+    border-radius: 4px;
+    background:    rgba(0, 200, 255, 0.04);
+    animation:     ol-appear 0.15s ease-out both;
+}
+
+.opacity-label {
+    display:         flex;
+    justify-content: space-between;
+    align-items:     baseline;
+    margin-bottom:   10px;
+}
+
+.opacity-layer-name {
+    font-family:    var(--font-mono);
+    font-size:      9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color:          var(--biolume);
+}
+
+.opacity-value {
+    font-family:    var(--font-mono);
+    font-size:      10px;
+    color:          rgba(0, 212, 255, 0.65);
+    min-width:      32px;
+    text-align:     right;
+}
+
+/* Slider track + thumb */
+.opacity-slider {
+    -webkit-appearance: none;
+    appearance:         none;
+    width:              100%;
+    height:             2px;
+    border-radius:      1px;
+    background: linear-gradient(
+        to right,
+        rgba(0, 212, 255, 0.8) 0%,
+        rgba(0, 212, 255, 0.8) calc(var(--val, 100) * 1%),
+        rgba(126, 200, 227, 0.15) calc(var(--val, 100) * 1%)
+    );
+    outline:    none;
+    cursor:     pointer;
+}
+
+/* Webkit thumb */
+.opacity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width:        14px;
+    height:       14px;
+    border-radius: 50%;
+    background:    #00d4ff;
+    border:        2px solid rgba(0, 6, 15, 0.9);
+    box-shadow:    0 0 6px rgba(0, 212, 255, 0.6);
+    cursor:        pointer;
+    transition:    box-shadow 0.15s;
+}
+.opacity-slider::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.9);
+}
+
+/* Firefox thumb */
+.opacity-slider::-moz-range-thumb {
+    width:        14px;
+    height:       14px;
+    border-radius: 50%;
+    background:    #00d4ff;
+    border:        2px solid rgba(0, 6, 15, 0.9);
+    box-shadow:    0 0 6px rgba(0, 212, 255, 0.6);
+    cursor:        pointer;
+}
+.opacity-slider::-moz-range-track {
+    height:       2px;
+    background:   rgba(126, 200, 227, 0.15);
+    border-radius: 1px;
+}
 
 /* Anatomy note */
 .anatomy-note {

@@ -16,10 +16,10 @@
     "anatomy": "The cartilaginous skeleton is lighter and more flexible than bone, enabling the tight-radius turns juveniles rely on for reef hunting. Slow-twitch red muscle fibers sustain continuous cruising; dense fast-twitch white fibers power explosive acceleration.",
     "layers": {
       "skin":        { "label": "Dermal · Skin",       "obj": "/assets/models/greatWhite/sharky.obj",        "mtl": "/assets/models/greatWhite/sharky.mtl" },
-      "muscle":      { "label": "Muscular · Tissue",   "obj": "/assets/models/greatWhite/shark_muscles.obj",     "mtl": null },
-      "organs":      { "label": "Organs",              "obj": "/assets/models/greatWhite/shark_organs.obj",      "mtl": "/assets/models/greatWhite/shark_organs.mtl" },
+      "muscle":      { "label": "Muscular · Tissue",   "obj": "/assets/models/greatWhite/sharkyMuscles.obj",     "mtl": null },
+      "organs":      { "label": "Organs",              "obj": "/assets/models/greatWhite/sharkyOrgans.obj",      "mtl": "/assets/models/greatWhite/sharkyOrgans.mtl" },
       "circulatory": { "label": "Circulatory",         "obj": "/assets/models/greatWhite/shark_circulatory.obj", "mtl": "/assets/models/greatWhite/shark_circulatory.mtl" },
-      "skeleton":    { "label": "Osseous · Cartilage", "obj": "/assets/models/greatWhite/shark_skeleton.obj",   "mtl":  "/assets/models/greatWhite/shark_skeleton.mtl" }
+      "skeleton":    { "label": "Osseous · Cartilage", "obj": "/assets/models/greatWhite/sharkySkeleton.obj",   "mtl":  "/assets/models/greatWhite/sharkySkeleton.mtl" }
     }
   },
    "manta.obj": {
@@ -37,8 +37,8 @@
     "anatomy": "The cartilaginous skeleton is lighter and more flexible than bone, enabling the tight-radius turns juveniles rely on for reef hunting. Slow-twitch red muscle fibers sustain continuous cruising; dense fast-twitch white fibers power explosive acceleration.",
     "layers": {
       "skin":        { "label": "Dermal · Skin",       "obj": "/assets/models/manta/manta.obj",        "mtl": "/assets/models/manta/manta.mtl" },
-      "organs":      { "label": "Organs",              "obj": "/assets/models/manta/manta_organs.obj",      "mtl": "/assets/models/manta/manta_organs.mtl" },
-      "skeleton":    { "label": "Osseous · Cartilage", "obj": "/assets/models/manta/manta_skeleton.obj",   "mtl":  "/assets/models/manta/manta_skeleton.mtl" }
+      "organs":      { "label": "Organs",              "obj": "/assets/models/manta/mantaOrgans.obj",      "mtl": "/assets/models/manta/mantaOrgans.mtl" },
+      "skeleton":    { "label": "Osseous · Cartilage", "obj": "/assets/models/manta/mantaSkeleton.obj",   "mtl":  "/assets/models/manta/mantaSkeleton.mtl" }
     }
   }
 
