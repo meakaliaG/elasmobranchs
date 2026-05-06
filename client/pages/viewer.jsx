@@ -730,18 +730,28 @@ const easeInOut = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 
 const selectSpecimen = async (spec) => {
     if (activeSpec === spec) return;
-
+ 
     // Deselect any previous without running the full UI teardown
     if (activeSpec) {
-        Object.values(activeSpec.layerModels).forEach(m => { m.visible = false; });
+        // Reset opacity on all layers of the outgoing specimen
+        const resetOpacity = (object) => {
+            if (!object) return;
+            object.traverse(child => {
+                if (!child.isMesh) return;
+                const mats = Array.isArray(child.material) ? child.material : [child.material];
+                mats.forEach(m => { m.opacity = 1.0; m.transparent = false; m.needsUpdate = true; });
+            });
+        };
+        resetOpacity(activeSpec.skinMesh);
+        Object.values(activeSpec.layerModels).forEach(m => { resetOpacity(m); m.visible = false; });
         if (activeSpec.skinMesh) activeSpec.skinMesh.visible = true;
     }
     deselectOrgan();
-
+ 
     activeSpec           = spec;
     spec.frozenSwimT     = swimT + spec.swimOffset;
     cameraTransitioning  = true;  // kick off the one-shot camera approach
-
+ 
     // Load this specimen's organ data
     const entry = SPECIMEN_CATALOG[spec.fileName];
     if (entry?.organDataUrl) {
@@ -756,7 +766,7 @@ const selectSpecimen = async (spec) => {
     } else {
         ORGAN_DATA = {};
     }
-
+ 
     const catalogEntry = entry ?? {
         tag: 'Marine Specimen', name: 'Unknown Species', latin: '—',
         stats: [], description: '—', anatomy: '—',
@@ -768,18 +778,18 @@ const selectSpecimen = async (spec) => {
             skeleton:    { label: 'Osseous · Skeleton', obj: null, mtl: null },
         },
     };
-
+ 
     const badge = document.getElementById('specimenBadge');
     if (badge) badge.querySelector('.sb-latin').textContent = catalogEntry.latin;
-
+ 
     _setPanelData?.(catalogEntry);
     _setPanelOpen?.(true);
     _setActiveLayers?.(new Set(['skin']));
-
+ 
     // Reset layers — hide all, show only skin
     Object.values(spec.layerModels).forEach(m => { m.visible = false; });
     if (spec.skinMesh) spec.skinMesh.visible = true;
-
+ 
     document.getElementById('sceneDim')?.classList.add('active');
     badge?.classList.add('visible');
     document.getElementById('hint')?.classList.add('gone');
@@ -788,17 +798,37 @@ const selectSpecimen = async (spec) => {
 
 const deselectSpecimen = () => {
     if (!activeSpec) return;
-
-    Object.values(activeSpec.layerModels).forEach(m => { m.visible = false; });
+ 
+    // Reset every layer's opacity back to fully opaque before hiding.
+    // This ensures the next time the specimen is selected all layers start
+    // at 1.0 regardless of what the user set via the slider.
+    const resetOpacity = (object) => {
+        if (!object) return;
+        object.traverse(child => {
+            if (!child.isMesh) return;
+            const mats = Array.isArray(child.material) ? child.material : [child.material];
+            mats.forEach(m => {
+                m.opacity     = 1.0;
+                m.transparent = false;
+                m.needsUpdate = true;
+            });
+        });
+    };
+ 
+    resetOpacity(activeSpec.skinMesh);
+    Object.values(activeSpec.layerModels).forEach(layerObj => {
+        resetOpacity(layerObj);
+        layerObj.visible = false;
+    });
     if (activeSpec.skinMesh) activeSpec.skinMesh.visible = true;
     deselectOrgan();
-
+ 
     activeSpec = null;
     cameraTransitioning = true;
-
+ 
     _setPanelOpen?.(false);
     _setActiveLayers?.(new Set(['skin']));
-
+ 
     document.getElementById('sceneDim')?.classList.remove('active');
     document.getElementById('specimenBadge')?.classList.remove('visible');
     document.getElementById('hint')?.classList.remove('gone');
