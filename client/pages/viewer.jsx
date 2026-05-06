@@ -1221,7 +1221,7 @@ const animate = () => {
 
 const init = async () => {
     try {
-        SPECIMEN_CATALOG = await fetch('/assets/data/specimenCatalog.json')
+        SPECIMEN_CATALOG = await fetch('/assets/data/specimencatalog.json')
             .then(r => { if (!r.ok) throw r; return r.json(); });
         console.log(`[Atlas] Catalog loaded — ${Object.keys(SPECIMEN_CATALOG).length} specimen(s)`);
     } catch (err) {
